@@ -110,5 +110,5 @@ async def add_topic(db, requestor, source, priority, topic, style):
     else:
         print('Тема отправлена')
 
-
+print('Запуск ТГ бота...')
 asyncio.run(bot.polling(skip_pending=True))
