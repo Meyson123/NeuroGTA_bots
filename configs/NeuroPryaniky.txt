@@ -14,6 +14,8 @@ replacements = [
 default_topic_suggest_message = 'Отлично! Записал тему в книжечку!'
 default_style = 'Комедийный, поучительный'
 
+DiscordToken = 'Смешарики'
+
 mongodb_address = 'mongodb://localhost:27017'
 
 # Параметры

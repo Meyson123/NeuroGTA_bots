@@ -9,7 +9,7 @@ import os
 from dotenv import load_dotenv
 from myConfig import mongodb_address, TopicDelay, MashupDelay, CanAddTopic, CanAddMashup, NeedTopicDelay, \
     NeedMashupDelay, NeedMashupDelayPerUser, TopicsChatName, MashupsChatName, AdminNames, valid_speakers, TopicPriority, \
-    MashapPriority, replacements, default_topic_suggest_message, default_style
+    MashapPriority, replacements, default_topic_suggest_message, default_style, DiscordToken
 
 load_dotenv()
 
@@ -112,7 +112,8 @@ async def on_message(message):
                     # Если задержка по юзеру
                     if NeedMashupDelayPerUser:
                         # Проверяем, есть ли пользователь в словаре и прошла ли минута с момента последнего добавления темы
-                        if message.author.name in last_mashup_time_per_user and time.time() - last_mashup_time_per_user[message.author.name] < MashupDelay:
+                        if message.author.name in last_mashup_time_per_user and time.time() - last_mashup_time_per_user[
+                            message.author.name] < MashupDelay:
                             minuta = "минуту" if MashupDelay / 60 == 1 else (
                                 "минуты" if 2 <= MashupDelay / 60 <= 4 else "минут")
                             await message.reply(
@@ -219,4 +220,7 @@ def replace_name(name, replacements):
     return name
 
 
-bot.run(os.getenv('TOKENDS'))
+if DiscordToken == 'Gta':
+    bot.run(os.getenv('TOKENDSGTA'))
+else:
+    bot.run(os.getenv('TOKENDSSMESH'))

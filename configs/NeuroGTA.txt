@@ -9,6 +9,8 @@ replacements = [
 default_topic_suggest_message = 'Окей, бро! Добавил тему в список'
 default_style = ''
 
+DiscordToken = 'Gta'
+
 mongodb_address = 'mongodb://localhost:27017'
 
 # Параметры
