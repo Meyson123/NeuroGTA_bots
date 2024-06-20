@@ -1,6 +1,6 @@
 import json
 
-PROMPT = 'Повтори данный текст:'
+PROMPT = 'Повтори данный текст: <topic>'
 try:
     file_path_prompt = 'N:\AI-Stream-Kit\Stream-Kit\controller\config\default.json'
     with open(file_path_prompt, 'r', encoding='utf-8') as file:
