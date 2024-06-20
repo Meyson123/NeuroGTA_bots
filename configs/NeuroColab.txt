@@ -1,0 +1,42 @@
+# AI Колаб:
+
+valid_speakers = ["CJ", "SMOKE","Ёжик", "Крош", "Нюша", "Бараш", "Карыч", "Лосяш"]
+replacements = [
+    ("CJ", "CJ"),
+    ("SMOKE", "SMOKE"),
+    ("Крош", "Krosh"),
+    ("Бараш", "Barash"),
+    ("Нюша", "Nusha"),
+    ("Ёжик", "Ezhik"),
+    ("Лосяш", "Los"),
+    ("Карыч", "Karich"),
+]
+default_topic_suggest_message = 'Отлично! Записал тему в книжечку!'
+default_style = 'Комедийный, поучительный'
+
+DiscordToken = 'Смешарики'
+
+mongodb_address = 'mongodb://localhost:27017'
+
+# Параметры
+TopicDelay = 60
+TopicDelayTg = 60
+MashupDelay = 60
+
+CanAddTopic = True
+CanAddMashup = False
+
+NeedTopicDelay = False
+NeedMashupDelay = True
+NeedMashupDelayPerUser = False
+
+TopicPriority = 1
+MashapPriority = 1
+
+TopicsChatName = ["💥заказать-тему", "🔥быстрые-темы", "💥┆заказать-тему"]
+MashupsChatName = "💥заказать-мэшап"
+
+AdminNames = ['pryanik26', 'meyson420']
+AdminTgIds = [1484475666, 709479935]
+
+IsMongo = False  # Есть ли доступ к MongoDb (Для Мэйсона)

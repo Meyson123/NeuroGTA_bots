@@ -1,3 +1,4 @@
+
 # AI GTA:
 
 valid_speakers = ["CJ", "SMOKE"]
