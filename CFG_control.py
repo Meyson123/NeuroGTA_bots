@@ -1,21 +1,31 @@
 import io
-import os
 import subprocess
-
-base_dir = os.path.dirname(__file__)
-
-if input('Нейропряны или Гта? (Циферку выбери)\n'
-         '1) Нейропряны\n'
-         '2) Гта\n') == '1':
+ai = int(input( 'Выбери конфиг (Циферку выбери)\n'
+                '1) Нейропряны\n'
+                '2) Гта\n'
+                '3) Колаб\n'
+                '4) Ролик\n' ))
+if  ai == 1:
     with io.open('myConfig.py','w+',encoding='utf-8') as file, io.open('configs/NeuroPryaniky.txt','r',encoding='utf-8') as cfg_file:
         config = cfg_file.read()
         file.write(config)
-    propmt_to_run = os.path.join(base_dir, 'configs', 'PromptPryaniky.py')
-else:
+    propmt_to_run = 'configs/PromptPryaniky.py'
+elif ai == 2:
     with io.open('myConfig.py','w',encoding='utf-8') as file, io.open('configs/NeuroGTA.txt','r',encoding='utf-8') as cfg_file:
         config = cfg_file.read()
         file.write(config)
-    propmt_to_run = os.path.join(base_dir, 'configs', 'PromptGTA.py')
+    propmt_to_run = 'configs/PromptGTA.py'
+elif ai == 3:
+    with io.open('myConfig.py','w',encoding='utf-8') as file, io.open('configs/NeuroGTA.txt','r',encoding='utf-8') as cfg_file:
+        config = cfg_file.read()
+        file.write(config)
+    propmt_to_run = 'configs/PromptColab.py'
+elif ai == 4:
+    with io.open('myConfig.py','w',encoding='utf-8') as file, io.open('configs/NeuroGTA.txt','r',encoding='utf-8') as cfg_file:
+        config = cfg_file.read()
+        file.write(config)
+    propmt_to_run = 'configs/PromptVideo.py'
+else: print('Ps. Нужно отправить необходимую цифорку')
 print('Конфиг успешно изменен')
 
 try:
