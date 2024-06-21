@@ -21,7 +21,7 @@ MashupDelay = 60
 CanAddTopic = True
 CanAddMashup = False
 
-NeedTopicDelay = True
+NeedTopicDelay = False
 NeedMashupDelay = True
 NeedMashupDelayPerUser = False
 
@@ -32,6 +32,6 @@ TopicsChatName = ["💥заказать-тему", "🔥быстрые-темы"
 MashupsChatName = "💥заказать-мэшап"
 
 AdminNames = ['pryanik26', 'meyson420']
-AdminTgIds = [1484475666, 709479935,-1002175092872]
+AdminTgIds = [1484475666, 709479935, -1002175092872]
 
 IsMongo = False  # Есть ли доступ к MongoDb (Для Мэйсона)
