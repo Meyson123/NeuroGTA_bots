@@ -38,5 +38,6 @@ MashupsChatName = "💥заказать-мэшап"
 
 AdminNames = ['pryanik26', 'meyson420']
 AdminTgIds = [1484475666, 709479935,-1002175092872]
-
-IsMongo = False  # Есть ли доступ к MongoDb (Для Мэйсона)
+if input('ТЫ ПРЯНИК???!! (da)') == 'da':
+    IsMongo = True
+else: IsMongo = False

@@ -11,7 +11,7 @@ default_style = ''
 
 DiscordToken = 'Gta'
 
-mongodb_address = 'mongodb://localhost:27017'
+mongodb_address = 'mongodb://26.62.113.122:27017'
 
 # Параметры
 TopicDelay = 60
@@ -28,10 +28,10 @@ NeedMashupDelayPerUser = False
 TopicPriority = 1
 MashapPriority = 1
 
-TopicsChatName = ["💥заказать-тему", "🔥быстрые-темы", "💥┆заказать-тему"]
+TopicsChatName = ["💥заказать-тему", "🔥быстрые-темы", "💥┆заказать-тему-совершенно-секретно-пока-мама-не-видит"]
 MashupsChatName = "💥заказать-мэшап"
 
 AdminNames = ['pryanik26', 'meyson420']
 AdminTgIds = [1484475666, 709479935, -1002175092872]
 
-IsMongo = False  # Есть ли доступ к MongoDb (Для Мэйсона)
+

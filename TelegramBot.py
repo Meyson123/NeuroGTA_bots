@@ -8,9 +8,9 @@ from pymongo import MongoClient
 from telebot.async_telebot import AsyncTeleBot
 
 from myConfig import mongodb_address, AdminTgIds, NeedTopicDelay, TopicDelayTg, TopicPriority, \
-    default_topic_suggest_message, default_style, IsMongo
+    default_topic_suggest_message, default_style
 
-from DBSQL import add_count,show_list,search_nick
+from CounterScripts import add_count,sort_counter
 
 load_dotenv()
 bot = AsyncTeleBot(os.getenv('TOKENTG'))
@@ -31,10 +31,7 @@ def connect_to_mongodb():
             time.sleep(1)
 
 
-if IsMongo:
-    db = connect_to_mongodb()
-else:
-    db = 1
+db = connect_to_mongodb()
 
 
 @bot.message_handler(commands=['start'])
@@ -51,12 +48,6 @@ async def help_message(message):
                                             "Пример: '/тема Cj и Smoke осознали что ими управляет нейросеть !стиль хоррор'\n"
                                             "Ps. В нашем дискорд сервере задержка на добавление темы меньше). Секретная ссылка на наш дискорд: https://discord.gg/Eqc38NT7tr\n"
                                             "Pss. Только никому🤫")
-
-
-@bot.message_handler(commands=['show_list'])
-async def showDB(message):
-    if message.chat.id in AdminTgIds:
-        await bot.send_message(message.chat.id, show_list())
 
 
 # Передача тем от бота
@@ -83,8 +74,8 @@ async def topic(message):
         else:
             style_content = default_style
         await add_topic(db, requester, sourse, TopicPriority, user_topic, style_content)
-        await search_nick(message.from_user.first_name)
-        add_count(message.from_user.first_name)
+        await add_count(message.from_user.first_name)
+        sort_counter()
         await bot.reply_to(message, text=default_topic_suggest_message)
     last_topic_time[message.chat.id] = time.time()
 
@@ -96,27 +87,24 @@ async def add_topic(db, requestor, source, priority, topic, style):
 Стиль: {style}
 Ник автора: {requestor}
 Приоритет: {priority}''')
-    if IsMongo:
-        while True:
-            try:
-                suggested_topic = {
-                    "type": "topic",
-                    "style": style,
-                    "requestor_id": requestor,
-                    "source": source,
-                    "priority": priority,
-                    "topic": topic
-                }
-                result = db.suggested_topics.insert_one(suggested_topic)
-                print("Запись с новой темой была успешно добавлена в suggested_topics. ID записи: " + str(
-                    result.inserted_id))
-                break
-            except pymongo.errors.AutoReconnect as e:
-                print(f"Ошибка добавления записи в generated_topics. Продолжаем повторные попытки отправки запроса...")
-                print(e)
-                time.sleep(1)
-    else:
-        print('Тема отправлена')
+    while True:
+        try:
+            suggested_topic = {
+                "type": "topic",
+                "style": style,
+                "requestor_id": requestor,
+                "source": source,
+                "priority": priority,
+                "topic": topic
+            }
+            result = db.suggested_topics.insert_one(suggested_topic)
+            print("Запись с новой темой была успешно добавлена в suggested_topics. ID записи: " + str(
+                result.inserted_id))
+            break
+        except pymongo.errors.AutoReconnect as e:
+            print(f"Ошибка добавления записи в generated_topics. Продолжаем повторные попытки отправки запроса...")
+            print(e)
+            time.sleep(1)
 
 
 print('Запуск ТГ бота...')

@@ -10,7 +10,7 @@ from dotenv import load_dotenv
 from myConfig import mongodb_address, TopicDelay, MashupDelay, CanAddTopic, CanAddMashup, NeedTopicDelay, \
     NeedMashupDelay, NeedMashupDelayPerUser, TopicsChatName, MashupsChatName, AdminNames, valid_speakers, TopicPriority, \
     MashapPriority, replacements, default_topic_suggest_message, default_style, DiscordToken
-from DBSQL import add_count, search_nick
+from CounterScripts import add_count, search_nick
 load_dotenv()
 
 intents = discord.Intents.default()
