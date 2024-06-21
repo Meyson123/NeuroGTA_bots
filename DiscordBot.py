@@ -10,7 +10,7 @@ from dotenv import load_dotenv
 from myConfig import mongodb_address, TopicDelay, MashupDelay, CanAddTopic, CanAddMashup, NeedTopicDelay, \
     NeedMashupDelay, NeedMashupDelayPerUser, TopicsChatName, MashupsChatName, AdminNames, valid_speakers, TopicPriority, \
     MashapPriority, replacements, default_topic_suggest_message, default_style, DiscordToken
-from CounterScripts import add_count, search_nick
+from CounterScripts import add_count,sort_counter
 load_dotenv()
 
 intents = discord.Intents.default()
@@ -92,8 +92,8 @@ async def on_message(message):
             source = "Discord"
 
             add_topic(db, requestor, source, TopicPriority, topic_content, style_content)  # Добавляем тему в БД
-            await search_nick(message.author.name)
-            add_count(message.author.name)
+            await add_count(message.author.name)
+            sort_counter()
             await message.reply(default_topic_suggest_message, mention_author=False)
 
             # Обновляем время последнего добавления темы для пользователя
