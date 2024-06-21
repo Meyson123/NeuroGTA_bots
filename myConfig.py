@@ -1,19 +1,15 @@
 
-# AI Нейропряники:
+# AI GTA:
 
-valid_speakers = ["Ёжик", "Крош", "Нюша", "Бараш", "Карыч", "Лосяш"]
+valid_speakers = ["CJ", "SMOKE"]
 replacements = [
-    ("Крош", "Krosh"),
-    ("Бараш", "Barash"),
-    ("Нюша", "Nusha"),
-    ("Ёжик", "Ezhik"),
-    ("Лосяш", "Los"),
-    ("Карыч", "Karich"),
+    ("CJ", "CJ"),
+    ("SMOKE", "SMOKE"),
 ]
-default_topic_suggest_message = 'Отлично! Записал тему в книжечку!'
-default_style = 'Комедийный, поучительный'
+default_topic_suggest_message = 'Окей, бро! Добавил тему в список'
+default_style = ''
 
-DiscordToken = 'Смешарики'
+DiscordToken = 'Gta'
 
 mongodb_address = 'mongodb://localhost:27017'
 
@@ -25,7 +21,7 @@ MashupDelay = 60
 CanAddTopic = True
 CanAddMashup = False
 
-NeedTopicDelay = False
+NeedTopicDelay = True
 NeedMashupDelay = True
 NeedMashupDelayPerUser = False
 
@@ -36,6 +32,6 @@ TopicsChatName = ["💥заказать-тему", "🔥быстрые-темы"
 MashupsChatName = "💥заказать-мэшап"
 
 AdminNames = ['pryanik26', 'meyson420']
-AdminTgIds = [1484475666, 709479935]
+AdminTgIds = [1484475666, 709479935,-1002175092872]
 
 IsMongo = False  # Есть ли доступ к MongoDb (Для Мэйсона)

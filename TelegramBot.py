@@ -1,15 +1,16 @@
-import datetime
-import telebot
 import asyncio
-from telebot.async_telebot import AsyncTeleBot
-import aiohttp
 import os
+import time
+
+import pymongo
+from dotenv import load_dotenv
+from pymongo import MongoClient
+from telebot.async_telebot import AsyncTeleBot
+
 from myConfig import mongodb_address, AdminTgIds, NeedTopicDelay, TopicDelayTg, TopicPriority, \
     default_topic_suggest_message, default_style, IsMongo
-import time
-from dotenv import load_dotenv
-import pymongo
-from pymongo import MongoClient
+
+from DBSQL import add_count,show_list,search_nick
 
 load_dotenv()
 bot = AsyncTeleBot(os.getenv('TOKENTG'))
@@ -44,7 +45,7 @@ async def start(message):
 
 # Сообщение с информацией
 @bot.message_handler(commands=['help'])
-async def help(message):
+async def help_message(message):
     await bot.send_message(message.chat.id, "Все до жути просто,братан. Просто пиши '''/тема''' а дальше свою тему\n"
                                             "Также можно добавить истории свой стиль(жанр),для этого нужно после своей темы добавить !стиль [Свой стиль]\n"
                                             "Пример: '/тема Cj и Smoke осознали что ими управляет нейросеть !стиль хоррор'\n"
@@ -52,10 +53,15 @@ async def help(message):
                                             "Pss. Только никому🤫")
 
 
+@bot.message_handler(commands=['show_list'])
+async def showDB(message):
+    if message.chat.id in AdminTgIds:
+        await bot.send_message(message.chat.id, show_list())
+
+
 # Передача тем от бота
 @bot.message_handler(commands=['topic'])
-async def tema(message):
-    print(message.chat.id)
+async def topic(message):
     if message.text[6:] == '':
         await bot.send_message(message.chat.id, 'Тема не может быть пустой')
     else:
@@ -77,6 +83,8 @@ async def tema(message):
         else:
             style_content = default_style
         await add_topic(db, requester, sourse, TopicPriority, user_topic, style_content)
+        await search_nick(message.from_user.first_name)
+        add_count(message.from_user.first_name)
         await bot.reply_to(message, text=default_topic_suggest_message)
     last_topic_time[message.chat.id] = time.time()
 
@@ -109,6 +117,7 @@ async def add_topic(db, requestor, source, priority, topic, style):
                 time.sleep(1)
     else:
         print('Тема отправлена')
+
 
 print('Запуск ТГ бота...')
 asyncio.run(bot.polling(skip_pending=True))
