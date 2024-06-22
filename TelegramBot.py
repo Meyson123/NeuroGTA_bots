@@ -1,7 +1,6 @@
 import asyncio
 import os
 import time
-
 import pymongo
 from dotenv import load_dotenv
 from pymongo import MongoClient
@@ -10,12 +9,15 @@ from telebot.async_telebot import AsyncTeleBot
 from myConfig import mongodb_address, AdminTgIds, NeedTopicDelay, TopicDelayTg, TopicPriority, \
     default_topic_suggest_message, default_style
 
-from CounterScripts import add_count,sort_counter
+from CounterScripts import add_count, sort_counter
 
 load_dotenv()
 bot = AsyncTeleBot(os.getenv('TOKENTG'))
 
 last_topic_time = {}
+
+
+
 
 
 # Функция подключения к mongodb
@@ -108,4 +110,5 @@ async def add_topic(db, requestor, source, priority, topic, style):
 
 
 print('Запуск ТГ бота...')
+
 asyncio.run(bot.polling(skip_pending=True))
