@@ -4,6 +4,7 @@ import os
 
 button_width = 400  # Ширина кнопок
 button_height = 50  # высота кнопок
+
 #basedir = 'C:\\Users\Honor\Downloads\\'
 basedir = 'N:\AI-Stream-Kit\Stream-Kit\\'
 
@@ -25,14 +26,14 @@ def controller():
 
 
 def RvcStart():
-    os.system(f'python {basedir}rvc\infer-web.py --pycmd--port 7897')
+    os.startfile(rf'{basedir}1. RVC.bat')
 
 
 def RvcTTSStart():
-    os.system(f'python {basedir}rvc-tts\\app.py')
+    os.startfile(rf'{basedir}2. RVC TTS.bat')
 
 def RvcGateway():
-    os.system(f'python {basedir}rvc\\_gateway.py')
+    os.startfile(rf'{basedir}3. RVC Gateway.bat')
 
 
 
