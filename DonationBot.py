@@ -1,0 +1,184 @@
+import requests
+import json
+import socketio
+import time
+import pymongo
+from pymongo import MongoClient
+import sys
+import os
+from myConfig import valid_speakers, replacements, mongodb_address
+from dotenv import load_dotenv
+
+load_dotenv()
+
+# Добавляем путь к каталогу, где находится _myConfig.py
+#sys.path.append(r'N:\AI-Stream-Kit\Stream-Kit\Configs')
+#import _myConfig
+
+# TOKENDONAT = _myConfig.TOKENDONAT
+
+# Credentials
+# mongodb_address = _myConfig.mongodb_address
+
+InteractionOneSumRub = 25
+InteractionTwoSumRub = 30
+AddTopicSumRub = 50
+AddMashupSumRub = 100
+
+# valid_speakers = _myConfig.valid_speakers
+# replacements = _myConfig.replacements
+
+# Функция подключения к mongodb
+def connect_to_mongodb():
+    while True:
+        try:
+            client = MongoClient(mongodb_address)
+            db = client['Director']
+            return db
+        except pymongo.errors.AutoReconnect as e:
+            print_colored_message(f"Ошибка установки соединения с mongodb. Продолжаем повторные попытки подключения...")
+            print(e)
+            time.sleep(1)
+     
+db = connect_to_mongodb()  
+
+print(db)
+
+sio = socketio.Client()
+
+@sio.on('connect')
+def on_connect():
+    sio.emit('add-user', {"token": os.getenv('TOKENDON'), "type": "alert_widget"})
+
+@sio.on('donation')
+def on_message(data):
+    donat = json.loads(data)
+    
+    user = donat['username']
+    amount = donat['amount']
+    message = donat['message']
+    currency = donat['currency']
+    
+    print(user, 'задонатил', amount, currency)
+    print('Сообщение: ', message)
+    
+    FinalAmount = 0
+    if type(amount) == int:
+        FinalAmount = amount
+    elif type(amount) == float:
+        FinalAmount = int(amount)
+    elif type(amount) == str:
+        amountSplit = amount.split('.')
+        FinalAmount = int(amountSplit[0])
+    
+    
+    if (currency == 'RUB'):
+        if (FinalAmount == AddMashupSumRub):
+            print('Мэшап задоначен')
+            
+            if not(message.startswith('!мэшап')):
+                print('Некорректный запрос мэшапа!')
+                print()
+                return
+                
+            mashup = message.split("!мэшап ", 1)[1]
+            requestor = f'Донатер {user}'
+            
+            if mashup and " " in mashup:
+                speaker, url = mashup.split(" ", 1)
+                if speaker in valid_speakers:
+                    eng_speaker = replace_name(speaker, replacements)
+                    add_mashup(db, requestor, "Donat", 2, eng_speaker, url)
+                else:
+                    print("ОШИБКА! НЕОБХОДИМО РУЧНОЕ ДОБАВЛЕНИЕ")
+                    print()
+            else:
+                print("ОШИБКА! НЕОБХОДИМО РУЧНОЕ ДОБАВЛЕНИЕ")
+                print()
+            
+        elif (FinalAmount == AddTopicSumRub):
+            print('Тема задоначена')
+            if "!стиль" in message:
+                style_content = message.split("!стиль ", 1)[1]
+                message = message.split("!стиль ", 1)[0].strip()
+            else:
+                style_content = "Комедийный, поучительный"
+            requestor = f'Донатер {user}'
+            add_topic(db, requestor, "Donat", 2, message, style_content)  # Добавляем тему в БД
+            
+        elif (FinalAmount == InteractionOneSumRub):
+            print('Цветок задоначен')
+            data = 'Flower: ' + str(donat['username'])
+            addDonationData(data)
+        elif (FinalAmount == InteractionTwoSumRub):
+            print('Танец задоначен')
+            addDonationData('Dance')
+            
+            
+        
+def clear_file():
+    with open("DonationData.txt", "a", encoding="utf-8") as file:
+        file.write('')
+        
+            
+def addDonationData(str):
+    with open("DonationData.txt", "a", encoding="utf-8") as file:
+        file.write(str + "\n")
+        print("Добавлено в файл: ", str)
+        print()
+        
+        
+        # Добавление сценария в БД
+def add_topic(db, requestor, source, priority, topic, style):
+    while True:
+        try:
+            suggested_topic = {
+                "type": "topic",
+                "style": style,
+                "requestor_id": requestor,
+                "source": source,
+                "priority": priority,
+                "topic": topic
+            }
+
+            result = db.suggested_topics.insert_one(suggested_topic)
+            print("Запись с новой темой была успешно добавлена в suggested_topics. ID записи: " + str(result.inserted_id))
+            print()
+            break
+        except pymongo.errors.AutoReconnect as e:
+            print(f"Ошибка добавления записи в generated_topics. Продолжаем повторные попытки отправки запроса...")
+            print(e)
+            time.sleep(1)
+            
+            
+# Добавление мешапа в БД
+def add_mashup(db, requestor, source, priority, speaker, url):
+    while True:
+        try:
+            suggested_topic = {
+                "type": "mashup",
+                "requestor_id": requestor,
+                "source": source,
+                "priority": priority,
+                "speaker": speaker,
+                "url": url
+            }
+
+            result = db.suggested_topics.insert_one(suggested_topic)
+            print("Запись с новым мешапом была успешно добавлена в suggested_topics. ID записи: " + str(result.inserted_id))
+            print()
+            break
+        except pymongo.errors.AutoReconnect as e:
+            print(f"Ошибка добавления записи в generated_topics. Продолжаем повторные попытки отправки запроса...")
+            print(e)
+            time.sleep(1)
+
+
+def replace_name(name, replacements):
+    for old, new in replacements:
+        if name == old:
+            return new
+    return name
+
+sio.connect('wss://socket.donationalerts.ru:443',transports='websocket')
+clear_file()

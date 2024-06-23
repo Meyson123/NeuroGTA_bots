@@ -4,7 +4,8 @@ import os
 
 button_width = 400  # Ширина кнопок
 button_height = 50  # высота кнопок
-basedir = 'C:\\Users\Honor\Downloads\\'
+#basedir = 'C:\\Users\Honor\Downloads\\'
+basedir = 'N:\AI-Stream-Kit\Stream-Kit\\'
 
 
 def tgbot():
@@ -42,7 +43,8 @@ def startBuild():
 
 
 def qcounter():
-    os.system(f'python {basedir}IntegrationScripts\\QueueCounter.py')
+    subprocess.Popen(['start', 'python', 'QueueCounter.py'], shell=True)
+    print('Бот счетчкик тем запущен')
 
 def cfgControl():
     subprocess.run(['python', 'CFG_control.py'])
