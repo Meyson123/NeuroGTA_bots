@@ -4,8 +4,9 @@ import os
 
 button_width = 400  # Ширина кнопок
 button_height = 50  # высота кнопок
-
 #basedir = 'C:\\Users\Honor\Downloads\\'
+
+
 basedir = 'N:\AI-Stream-Kit\Stream-Kit\\'
 
 
@@ -18,34 +19,36 @@ def dsbot():
     subprocess.Popen(['start', 'python', 'DiscordBot.py'], shell=True)
     print('Бот Дискорд запущен')
 
+
 def donbot():
     subprocess.Popen(['start', 'python', 'DonationBot.py'], shell=True)
     print('Бот для крутых(Донат) запущен')
+
+
 def controller():
-    os.system(f'cd {basedir}controller && npm start')
+    os.system(f'cd / && cd {basedir} && start 4.Controller.bat')
 
 
 def RvcStart():
-    os.startfile(rf'{basedir}1. RVC.bat')
+    os.system(f'cd / && cd {basedir} && start 1.RVC.bat')
 
 
 def RvcTTSStart():
-    os.startfile(rf'{basedir}2. RVC TTS.bat')
+    os.system(f'cd / && cd {basedir}  && start 2.RVCTTS.bat')
+
 
 def RvcGateway():
-    os.startfile(rf'{basedir}3. RVC Gateway.bat')
-
+    os.system(f'cd / && cd {basedir} && start 3.RVCGateway.bat')
 
 
 def startBuild():
     os.startfile(r"D:00_AI_Stream\BUILDS\10.06.2024\AI-Smeshariki-URP.exe")
 
 
-
-
 def qcounter():
     subprocess.Popen(['start', 'python', 'QueueCounter.py'], shell=True)
     print('Бот счетчкик тем запущен')
+
 
 def cfgControl():
     subprocess.run(['python', 'CFG_control.py'])
