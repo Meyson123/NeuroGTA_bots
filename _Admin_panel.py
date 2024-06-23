@@ -1,8 +1,10 @@
 import customtkinter as ctk
 import subprocess
+import os
 
 button_width = 400  # Ширина кнопок
 button_height = 50  # высота кнопок
+basedir = 'C:\\Users\Honor\Downloads\\'
 
 
 def tgbot():
@@ -14,34 +16,33 @@ def dsbot():
     subprocess.Popen(['start', 'python', 'DiscordBot.py'], shell=True)
     print('Бот Дискорд запущен')
 
-
+def donbot():
+    subprocess.Popen(['start', 'python', 'DonationBot.py'], shell=True)
+    print('Бот для крутых(Донат) запущен')
 def controller():
-    subprocess.Popen(['npm', 'start'], shell=True)
-
-
-def RvcGateway():
-    subprocess.Popen(['start', 'python', '_gateway.py'], shell=True)
+    os.system(f'cd {basedir}controller && npm start')
 
 
 def RvcStart():
-    subprocess.Popen(['start', 'python', 'infer-web.py --pycmd --port 7897'], shell=True)
+    os.system(f'python {basedir}rvc\infer-web.py --pycmd--port 7897')
 
 
 def RvcTTSStart():
-    subprocess.Popen(['start', 'python', 'app.py'], shell=True)
+    os.system(f'python {basedir}rvc-tts\\app.py')
+
+def RvcGateway():
+    os.system(f'python {basedir}rvc\\_gateway.py')
+
 
 
 def startBuild():
-    subprocess.Popen(r"D:00_AI_StreamBUILDS10.06.2024AI-Smeshariki-URP.exe", shell=True)
+    os.startfile(r"D:00_AI_Stream\BUILDS\10.06.2024\AI-Smeshariki-URP.exe")
 
 
-def donbot():
-    subprocess.Popen(['start', 'python', 'DonationBot.py'], shell=True)
 
 
 def qcounter():
-    subprocess.Popen(['start', 'python', 'QueueCounter.py'], shell=True)
-
+    os.system(f'python {basedir}IntegrationScripts\\QueueCounter.py')
 
 def cfgControl():
     subprocess.run(['python', 'CFG_control.py'])
@@ -111,10 +112,9 @@ class AdminPanel(ctk.CTk):
         self.create_widgets()
 
     def create_widgets(self):
-
         self.frame_bot.grid(row=0, column=0, padx=25, pady=20, sticky="w")
         self.frame_rvc.grid(row=0, column=1, padx=20, pady=20, sticky="e")
-        self.frame_other.grid(row=1, column=0, columnspan=2 ,padx=20, pady=20)
+        self.frame_other.grid(row=1, column=0, columnspan=2, padx=20, pady=20)
         # button_width = 200  # Ширина кнопок
         # button_height = 40  # высота кнопок
         #
