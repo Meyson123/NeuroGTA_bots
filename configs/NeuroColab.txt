@@ -16,7 +16,7 @@ default_style = 'Комедийный, поучительный'
 
 DiscordToken = 'Смешарики'
 
-mongodb_address = 'mongodb://localhost:27017'
+mongodb_address = 'mongodb://26.62.113.122:27017'
 
 # Параметры
 TopicDelay = 60
