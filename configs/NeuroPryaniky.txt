@@ -20,10 +20,10 @@ mongodb_address = 'mongodb://localhost:27017'
 # Параметры
 TopicDelay = 60
 TopicDelayTg = 60
-MashupDelay = 60
+MashupDelay = 240
 
 CanAddTopic = True
-CanAddMashup = False
+CanAddMashup = True
 
 NeedTopicDelay = False
 NeedMashupDelay = True
