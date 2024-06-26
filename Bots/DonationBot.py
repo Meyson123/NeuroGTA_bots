@@ -4,10 +4,10 @@ import socketio
 import time
 import pymongo
 from pymongo import MongoClient
-import sys
 import os
 from myConfig import valid_speakers, replacements, mongodb_address
 from dotenv import load_dotenv
+from Mongodb.BDScripts import add_topic,add_mashup
 
 load_dotenv()
 
@@ -114,7 +114,6 @@ def on_message(data):
             print('Танец задоначен')
             addDonationData('Dance')
             
-            
         
 def clear_file():
     with open("DonationData.txt", "a", encoding="utf-8") as file:
@@ -129,50 +128,6 @@ def addDonationData(str):
         
         
         # Добавление сценария в БД
-def add_topic(db, requestor, source, priority, topic, style):
-    while True:
-        try:
-            suggested_topic = {
-                "type": "topic",
-                "style": style,
-                "requestor_id": requestor,
-                "source": source,
-                "priority": priority,
-                "topic": topic
-            }
-
-            result = db.suggested_topics.insert_one(suggested_topic)
-            print("Запись с новой темой была успешно добавлена в suggested_topics. ID записи: " + str(result.inserted_id))
-            print()
-            break
-        except pymongo.errors.AutoReconnect as e:
-            print(f"Ошибка добавления записи в generated_topics. Продолжаем повторные попытки отправки запроса...")
-            print(e)
-            time.sleep(1)
-            
-            
-# Добавление мешапа в БД
-def add_mashup(db, requestor, source, priority, speaker, url):
-    while True:
-        try:
-            suggested_topic = {
-                "type": "mashup",
-                "requestor_id": requestor,
-                "source": source,
-                "priority": priority,
-                "speaker": speaker,
-                "url": url
-            }
-
-            result = db.suggested_topics.insert_one(suggested_topic)
-            print("Запись с новым мешапом была успешно добавлена в suggested_topics. ID записи: " + str(result.inserted_id))
-            print()
-            break
-        except pymongo.errors.AutoReconnect as e:
-            print(f"Ошибка добавления записи в generated_topics. Продолжаем повторные попытки отправки запроса...")
-            print(e)
-            time.sleep(1)
-
 
 def replace_name(name, replacements):
     for old, new in replacements:

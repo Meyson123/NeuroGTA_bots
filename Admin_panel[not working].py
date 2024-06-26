@@ -12,7 +12,7 @@ tg, ds = None, None
 
 def tgbut():
     global tg  # Указываем, что будем использовать глобальную переменную tg
-    tg = toggle_script(tg, "TelegramBot.py")  # Возвращаем новое значение tg из функции
+    tg = toggle_script(tg, "Bots/TelegramBot.py")  # Возвращаем новое значение tg из функции
 
 
 def toggle_script(bot, file_name):

@@ -1,27 +1,25 @@
 import customtkinter as ctk
-import subprocess
 import os
-
+import subprocess
 button_width = 400  # Ширина кнопок
 button_height = 50  # высота кнопок
+
 #basedir = 'C:\\Users\Honor\Downloads\\'
-
-
 basedir = 'N:\AI-Stream-Kit\Stream-Kit\\'
 
 
 def tgbot():
-    subprocess.Popen(['start', 'python', 'TelegramBot.py'], shell=True)
+    subprocess.Popen(['start', 'python', 'Bots/TelegramBot.py'], shell=True)
     print('Бот Телеграмм запущен')
 
 
 def dsbot():
-    subprocess.Popen(['start', 'python', 'DiscordBot.py'], shell=True)
+    subprocess.Popen(['start', 'python', 'Bots/DiscordBot.py'], shell=True)
     print('Бот Дискорд запущен')
 
 
 def donbot():
-    subprocess.Popen(['start', 'python', 'DonationBot.py'], shell=True)
+    subprocess.Popen(['start', 'python', 'Bots/DonationBot.py'], shell=True)
     print('Бот для крутых(Донат) запущен')
 
 

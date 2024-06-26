@@ -14,8 +14,8 @@ DiscordToken = 'Gta'
 mongodb_address = 'mongodb://26.62.113.122:27017'
 
 # Параметры
-TopicDelay = 60
-TopicDelayTg = 60
+TopicDelay = 300
+TopicDelayTg = 300
 MashupDelay = 60
 
 CanAddTopic = True
