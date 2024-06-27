@@ -1,9 +1,9 @@
 from pymongo import MongoClient
 import time
-from myConfig import mongodb_address
+from myConfig import mongodb_address, QueueGeneratedText, QueueSuggestedText
 
 # Путь к файлу, который будет читаться OBS
-output_file = "QueueData.txt"
+output_file = "QueueDisplayData.txt"
 
 
 # Функция подключения к mongodb
@@ -30,10 +30,10 @@ while True:
         
         # Запись количества записей в файл
         with open(output_file, "w", encoding="utf-8") as f:
-            f.write(f"Темы в книжечке: {suggested_count}\n")
-            f.write(f"Темы готовы: {generated_count}")
-        print(f"Темы в книжечке: {suggested_count}")
-        print(f"Темы готовы: {generated_count}")
+            f.write(f"{QueueSuggestedText} {suggested_count}\n")
+            f.write(f"{QueueGeneratedText} {generated_count}")
+        print(f"{QueueSuggestedText} {suggested_count}")
+        print(f"{QueueGeneratedText} {generated_count}")
         print()
     except Exception as e:
         print(f"An error occurred: {e}")

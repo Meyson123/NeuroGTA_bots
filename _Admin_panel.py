@@ -44,8 +44,8 @@ def startBuild():
 
 
 def qcounter():
-    subprocess.Popen(['start', 'python', 'QueueCounter.py'], shell=True)
-    print('Бот счетчкик тем запущен')
+    subprocess.Popen(['start', 'python', 'Bots/QueueDisplayBot.py'], shell=True)
+    print('Бот счетчик тем запущен')
 
 
 def cfgControl():
