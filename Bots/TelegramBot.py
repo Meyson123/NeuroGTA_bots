@@ -51,7 +51,7 @@ async def help_message(message):
 # Передача тем от бота
 @bot.message_handler(commands=['topic'])
 async def topic(message):
-    if message.text[6:] == '':
+    if message.text[6:] == '' or message.text[6::] == '@NeuroGta_bot':
         await bot.send_message(message.chat.id, 'Тема не может быть пустой. Пожалуйста, напиши свою тему сразу после команды /topic')
     else:
         user_topic = message.text[6:]
