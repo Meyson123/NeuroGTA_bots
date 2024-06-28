@@ -1,22 +1,12 @@
 from pymongo import MongoClient
 import time
 from myConfig import mongodb_address, QueueGeneratedText, QueueSuggestedText
-
+from Mongodb.BotsScripts import connect_to_mongodb
 # Путь к файлу, который будет читаться OBS
 output_file = "QueueDisplayData.txt"
 
 
-# Функция подключения к mongodb
-def connect_to_mongodb():
-    while True:
-        try:
-            client = MongoClient(mongodb_address)
-            db = client['Director']
-            return db
-        except pymongo.errors.AutoReconnect as e:
-            print(f"Ошибка установки соединения с mongodb. Продолжаем повторные попытки подключения...")
-            print(e)
-            time.sleep(1)
+
      
 db = connect_to_mongodb()    
 suggested = db["suggested_topics"]
@@ -39,4 +29,4 @@ while True:
         print(f"An error occurred: {e}")
 
     # Ожидание перед следующим обновлением
-    time.sleep(5)  # обновление каждые 10 секунд
+    time.sleep(10)  # обновление каждые 10 секунд

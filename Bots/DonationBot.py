@@ -7,7 +7,7 @@ from pymongo import MongoClient
 import os
 from myConfig import valid_speakers, replacements, mongodb_address
 from dotenv import load_dotenv
-from Mongodb.BDScripts import add_topic,add_mashup
+from Mongodb.BotsScripts import add_topic,add_mashup,connect_to_mongodb,replace_name
 
 load_dotenv()
 
@@ -29,16 +29,7 @@ AddMashupSumRub = 100
 # replacements = _myConfig.replacements
 
 # Функция подключения к mongodb
-def connect_to_mongodb():
-    while True:
-        try:
-            client = MongoClient(mongodb_address)
-            db = client['Director']
-            return db
-        except pymongo.errors.AutoReconnect as e:
-            print_colored_message(f"Ошибка установки соединения с mongodb. Продолжаем повторные попытки подключения...")
-            print(e)
-            time.sleep(1)
+
      
 db = connect_to_mongodb()  
 
@@ -129,11 +120,6 @@ def addDonationData(str):
         
         # Добавление сценария в БД
 
-def replace_name(name, replacements):
-    for old, new in replacements:
-        if name == old:
-            return new
-    return name
 
 sio.connect('wss://socket.donationalerts.ru:443',transports='websocket')
 clear_file()

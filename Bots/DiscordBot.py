@@ -8,7 +8,8 @@ from dotenv import load_dotenv
 from myConfig import mongodb_address, TopicDelay, MashupDelay, CanAddTopic, CanAddMashup, NeedTopicDelay, \
     NeedMashupDelay, NeedMashupDelayPerUser, TopicsChatName, MashupsChatName, AdminNames, valid_speakers, TopicPriority, \
     MashapPriority, replacements, default_topic_suggest_message, default_style, DiscordToken
-from Mongodb.BDScripts import add_count,sort_counter, add_topic,add_mashup,connect_to_mongodb
+from Mongodb.CountScripts import add_count,sort_counter
+from Mongodb.BotsScripts import add_topic,add_mashup,connect_to_mongodb,replace_name
 load_dotenv()
 
 intents = discord.Intents.default()
@@ -155,11 +156,7 @@ async def on_message(message):
 
 
 
-def replace_name(name, replacements):
-    for old, new in replacements:
-        if name == old:
-            return new
-    return name
+
 
 
 if DiscordToken == 'Gta':

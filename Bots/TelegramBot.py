@@ -12,7 +12,8 @@ sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 from myConfig import mongodb_address, AdminTgIds, NeedTopicDelay, TopicDelayTg, TopicPriority, \
     default_topic_suggest_message, default_style
 
-from Mongodb.BDScripts import add_count, sort_counter,add_topic,connect_to_mongodb
+from Mongodb.CountScripts import add_count, sort_counter
+from Mongodb.BotsScripts import add_topic,connect_to_mongodb
 
 load_dotenv()
 bot = AsyncTeleBot(os.getenv('TOKENTG'))
@@ -77,7 +78,7 @@ async def topic(message):
                                                     Ник автора: {requestor}
                                                     Приоритет: {TopicPriority}''')
         await bot.reply_to(message, text=default_topic_suggest_message)
-        add_count(message.from_user.first_name)
+        await add_count(message.from_user.first_name)
         sort_counter()
     last_topic_time[message.chat.id] = time.time()
 

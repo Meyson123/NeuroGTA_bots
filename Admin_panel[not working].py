@@ -1,46 +1,41 @@
-import customtkinter as ctk
+import tkinter as tk
 import subprocess
-import os
+import asyncio
 
-ctk.set_appearance_mode("System")  # Modes: system (default), light, dark
-ctk.set_default_color_theme("green")
-app = ctk.CTk()
-app.geometry('600x400')
-app.title('Админ панелька by Meyson')
-tg, ds = None, None
+# Функция для запуска скрипта TelegramBot.py
+async def start_bot():
+    process = await asyncio.create_subprocess_exec('python', 'TelegramBot.py')
+    await process.communicate()
 
+# Функция для остановки скрипта TelegramBot.py
+async def stop_bot():
+    process.terminate()
 
-def tgbut():
-    global tg  # Указываем, что будем использовать глобальную переменную tg
-    tg = toggle_script(tg, "Bots/TelegramBot.py")  # Возвращаем новое значение tg из функции
-
-
-def toggle_script(bot, file_name):
-    if bot is None:
-        if os.path.exists("stop_bot.flag"):
-            os.remove("stop_bot.flag")
-        bot = subprocess.Popen(['start', 'python', file_name], shell=True)
-        print(f'Скрипт {file_name} успешно выполнен')
-        switch_mode(file_name, 'on')
+# Функция, которая будет вызываться при нажатии кнопки
+def toggle_bot():
+    global bot_process
+    if bot_process is None:
+        bot_process = asyncio.ensure_future(start_bot(), loop=loop)
+        start_stop_button.config(text="Stop Bot")
     else:
-        with open("stop_bot.flag", "w") as flag_file:
-            flag_file.write("stop")
-        bot.terminate()
-        bot = None
-        switch_mode(file_name, 'off')
-    return bot  # Возвращаем измененное значение bot (либо новый процесс, либо None)
+        asyncio.ensure_future(stop_bot(), loop=loop)
+        bot_process = None
+        start_stop_button.config(text="Start Bot")
 
+# Создание графического интерфейса с кнопкой
+root = tk.Tk()
+start_stop_button = tk.Button(root, text="Start Bot", command=toggle_bot)
+start_stop_button.pack()
 
-def switch_mode(bot, status):
-    if bot == 'TelegramBot.py':
-        if status == 'on':
-            TGbot.configure(text='Выключить телеграмм бота', fg_color='red')
-        else:
-            TGbot.configure(text='Включить телеграмм бота', fg_color='green')
+bot_process = None
 
+# Создание нового цикла событий asyncio
+loop = asyncio.new_event_loop()
 
-TGbot = ctk.CTkButton(app, text='Включить телеграмм бота', command=tgbut)
+# Функция для запуска цикла событий tkinter и asyncio
+def start_event_loop():
+    loop.run_forever()
 
-TGbot.grid(row=0, column=0)
-
-app.mainloop()
+# Запуск циклов событий
+root.after(0, start_event_loop)
+root.mainloop()
