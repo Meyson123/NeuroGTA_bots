@@ -97,11 +97,11 @@ def on_message(data):
             requestor = f'Донатер {user}'
             add_topic(db, requestor, "Donat", 2, message, style_content)  # Добавляем тему в БД
             
-        elif (FinalAmount == InteractionOneSumRub):
+        elif FinalAmount == InteractionOneSumRub:
             print('Цветок задоначен')
             data = 'Flower: ' + str(donat['username'])
             addDonationData(data)
-        elif (FinalAmount == InteractionTwoSumRub):
+        elif FinalAmount == InteractionTwoSumRub:
             print('Танец задоначен')
             addDonationData('Dance')
             

@@ -76,9 +76,9 @@ async def on_message(message):
             requestor = message.author.name  # Имя автора сообщения
             source = "Discord"
 
-            add_topic(db, requestor, source, TopicPriority, topic_content, style_content)  # Добавляем тему в БД
+            await add_topic(db, requestor, source, TopicPriority, topic_content, style_content)  # Добавляем тему в БД
             await add_count(message.author.name)
-            sort_counter()
+            await sort_counter()
             await message.reply(default_topic_suggest_message, mention_author=False)
 
             # Обновляем время последнего добавления темы для пользователя
@@ -129,10 +129,9 @@ async def on_message(message):
                     await message.reply(
                         'Используйте ссылку на видео на Ютубе, начинающуюся с https://www.youtube.com/watch?v=',
                         mention_author=False)
-                    return;
-                if (speaker in valid_speakers):
+                if speaker in valid_speakers:
                     eng_speaker = replace_name(speaker, replacements)
-                    add_mashup(db, message.author.name, "Discord", MashapPriority, eng_speaker, url)
+                    await add_mashup(db, message.author.name, "Discord", MashapPriority, eng_speaker, url)
                     await message.reply('Мэшап добавлен в книжечку!', mention_author=False)
 
                     # Обновляем время последнего добавления мэшапа

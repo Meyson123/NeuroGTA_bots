@@ -28,7 +28,7 @@ async def add_topic(db, requestor, source, priority, topic, style):
 
 
 # Добавление мешапа в БД
-def add_mashup(db, requestor, source, priority, speaker, url):
+async def add_mashup(db, requestor, source, priority, speaker, url):
     while True:
         try:
             suggested_topic = {

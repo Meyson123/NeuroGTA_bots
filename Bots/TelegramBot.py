@@ -2,12 +2,8 @@ import asyncio
 import os
 import sys
 import time
-import pymongo
 from dotenv import load_dotenv
-from pymongo import MongoClient
 from telebot.async_telebot import AsyncTeleBot
-
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
 from myConfig import mongodb_address, AdminTgIds, NeedTopicDelay, TopicDelayTg, TopicPriority, \
     default_topic_suggest_message, default_style
@@ -56,7 +52,7 @@ async def topic(message):
     else:
         user_topic = message.text[6:]
         requestor = message.from_user.first_name
-        sourse = 'Telegram'
+        source = 'Telegram'
         if not (message.chat.id in AdminTgIds):
             if NeedTopicDelay:
                 # Проверяем, есть ли пользователь в словаре и прошлo ли 2 минуты с момента последнего добавления темы
@@ -71,12 +67,12 @@ async def topic(message):
             user_topic = user_topic.split("!стиль ", 1)[0].strip()
         else:
             style_content = default_style
-        await add_topic(db, requestor, sourse, TopicPriority, user_topic, style_content)
+            await add_topic(db, requestor, source, TopicPriority, user_topic, style_content)
         await bot.send_message(-1002175092872, f'''
-                                                    Тема: {topic}
-                                                    Стиль: {style_content}
-                                                    Ник автора: {requestor}
-                                                    Приоритет: {TopicPriority}''')
+Тема: {user_topic}
+Стиль: {style_content}
+Ник автора: {requestor}
+Приоритет: {TopicPriority}''')
         await bot.reply_to(message, text=default_topic_suggest_message)
         await add_count(message.from_user.first_name)
         await sort_counter()
@@ -84,7 +80,8 @@ async def topic(message):
 
 @bot.message_handler()
 async def send_text(message):
-    await bot.send_message(message.chat.id, "Бро, задай тему с помощью команды /topic, или посмотри подробности с помощью /help")
+    if not(message.chat.id in AdminTgIds):
+        await bot.send_message(message.chat.id, "Бро, задай тему с помощью команды /topic, или посмотри подробности с помощью /help")
 
 
 print('Запуск ТГ бота...')
