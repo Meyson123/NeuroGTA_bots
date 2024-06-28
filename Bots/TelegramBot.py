@@ -79,7 +79,7 @@ async def topic(message):
                                                     Приоритет: {TopicPriority}''')
         await bot.reply_to(message, text=default_topic_suggest_message)
         await add_count(message.from_user.first_name)
-        sort_counter()
+        await sort_counter()
     last_topic_time[message.chat.id] = time.time()
 
 @bot.message_handler()

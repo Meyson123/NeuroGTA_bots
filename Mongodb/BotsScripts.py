@@ -4,7 +4,7 @@ import time
 from myConfig import mongodb_address
 
 
-def add_topic(db, requestor, source, priority, topic, style):
+async def add_topic(db, requestor, source, priority, topic, style):
     while True:
         try:
             suggested_topic = {
@@ -24,6 +24,7 @@ def add_topic(db, requestor, source, priority, topic, style):
             print(f"Ошибка добавления записи в generated_topics. Продолжаем повторные попытки отправки запроса...")
             print(e)
             time.sleep(1)
+    pass
 
 
 # Добавление мешапа в БД

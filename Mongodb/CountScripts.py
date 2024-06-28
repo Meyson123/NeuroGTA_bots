@@ -8,7 +8,7 @@ db = client['Director']
 collection = db['Counter_topics_by_user']
 
 
-def sort_counter():
+async def sort_counter():
     # Получение и сохранение отсортированных документов
     sorted_documents = list(collection.find().sort('count', -1))
 
@@ -16,6 +16,8 @@ def sort_counter():
     collection.delete_many({})
     for document in sorted_documents:
         document_id = collection.insert_one(document).inserted_id
+        
+    pass
 
 
 # Создание нового пользователя
