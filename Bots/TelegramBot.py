@@ -7,20 +7,20 @@ from dotenv import load_dotenv
 from telebot.async_telebot import AsyncTeleBot, types
 from telebot.types import InlineKeyboardMarkup,InlineKeyboardButton
 from myConfig import AdminTgIds, NeedTopicDelay, TopicDelayTg, TopicPriority, \
-    default_topic_suggest_message, default_style
+    default_topic_suggest_message, default_style,threshold
 from Mongodb.CountScripts import add_count, sort_counter,add_warning,block_user,search_nick
 from Mongodb.BotsScripts import add_topic,connect_to_mongodb,filter,delete_theme,search_number,get_topic_by_user,check_topic_exists
 
 
 load_dotenv()
 bot = AsyncTeleBot(os.getenv('TOKENTG'))
-
+mode = 'on'
 last_topic_time = {}
 
 
 # Функция подключения к mongodb
 db = connect_to_mongodb()
-
+source = 'Telegram'
 
 @bot.message_handler(commands=['start'])
 async def start(message):
@@ -44,32 +44,47 @@ async def help_message(message):
 @bot.message_handler(commands=['topic'])
 async def topic(message):
     user_topic = message.text[7:]
-    requestor = message.from_user.first_name
-    source = 'Telegram'
-    if await search_nick(requestor,'BlackList'):
+    requestor_name = message.from_user.first_name
+    requestor_id = message.from_user.id
+    if mode == 'off':
+        await bot.send_message(message.chat.id,'Сожалеем,но прием тем на этом стриме уже завершен, ждем ваши темы на следующем.\n                                                        с любовью,Meyson')
+        await bot.send_sticker(message.chat.id,'CAACAgIAAxkBAAEMZ-JmgY_WuGvpBWdSmJ99nMQgy7qMqQACBxkAAs0xEEghvxdEJ73qJDUE')
+        return
+    if await search_nick(requestor_name,'BlackList',source,requestor_id):
         await bot.send_message(message.chat.id,'Сожалеем,но вы заблокированы за нарушение правил. Вы можете попробовать вымолить прощение у @Meyson420')
         return
-    if await check_topic_exists(db, user_topic, 70):
-         last_topic_time[message.chat.id] = time.time()
-         await bot.send_message(message.chat.id, 'Давай по новой миша, все хуйня')
-         return
     if user_topic == '' or user_topic == 'NeuroGta_bot':
         await bot.send_message(message.chat.id, 'Тема не может быть пустой. Пожалуйста, напиши свою тему сразу после команды /topic')
         return
     if await filter(user_topic):
-        warnings = await add_warning(requestor)
+        warnings = await add_warning(requestor_name,source,requestor_id)
         last_topic_time[message.chat.id] = time.time()
-        await bot.send_message(message.chat.id, 'Ай-ай-ай,у нас тут так не принято. Не нужно кидать запрещенные темы\n /ban_themes - Запрещенные темы')
+        await bot.send_message(message.chat.id, 'Ай-ай-ай,у нас тут так не принято. Не нужно кидать запрещенные темы\n/ban_themes - Запрещенные темы')
         await bot.send_message(message.chat.id,f'На данный момент у вас {warnings} предупреждений.')
+        markup = InlineKeyboardMarkup()
+        markup.add(InlineKeyboardButton('🖕 Заблокировать', callback_data= f"ban|&|{requestor_id}|&|{requestor_name}"))
         await bot.send_message(-1002175092872, f'''
 Тема: {user_topic}
-Ник автора: {requestor}
+Ник автора: {requestor_name}
+Айди пользователя: {requestor_id}
 Количество предупреждений: {warnings}
-Тема заблокирована''')
+Тема заблокирована''',reply_markup=markup)
         return
+    check_result = await check_topic_exists(db, user_topic, threshold)
+    if check_result[0]:
+         procent, orig = check_result[1],check_result[2]
+         await bot.send_message(message.chat.id, 'Тема не добавлена!\nТакая тема(или подобная ей) уже есть в очереди.\nПридумайте что-нибудь другое')
+         await bot.send_message(-1002175092872, f'''
+Тема: {user_topic}
+Ник автора: {requestor_name}
+Айди пользователя: {requestor_id}
+Оригинальная тема: {orig}
+Процент сходства: {procent}%
+Тема заблокирована''')
+         return
     if not (message.chat.id in AdminTgIds):
         if NeedTopicDelay:
-            # Проверяем, есть ли пользователь в словаре и прошлo ли 2 минуты с момента последнего добавления темы
+            # Проверяем, есть ли пользователь в словаре и прошло ли 2 минуты с момента последнего добавления темы
             if message.chat.id in last_topic_time and time.time() - last_topic_time[message.chat.id] < TopicDelayTg:
                 minuta = "минуту" if TopicDelayTg / 60 == 1 else (
                     "минуты" if 2 <= TopicDelayTg / 60 <= 4 else "минут")
@@ -81,17 +96,18 @@ async def topic(message):
         user_topic = user_topic.split("!стиль ", 1)[0].strip()
     else:
         style_content = default_style
-    await add_topic(db, requestor, source, TopicPriority, user_topic, style_content)
+    topic_id = await add_topic(db, requestor_name,requestor_id, source, TopicPriority, user_topic, style_content)
     markup = InlineKeyboardMarkup()
-    markup.add(InlineKeyboardButton('🗑 Удалить тему', callback_data=f"delete_theme|&|{requestor}|&|{user_topic}"))
-    markup.add(InlineKeyboardButton('🖕 Заблокировать', callback_data= f"ban|&|{requestor}|&|{user_topic}"))
+    markup.add(InlineKeyboardButton('🗑 Удалить тему', callback_data=f"delete_theme|&|{requestor_id}|&|{requestor_name}|&|{topic_id}"))
+    markup.add(InlineKeyboardButton('🖕 Заблокировать', callback_data= f"ban|&|{requestor_id}|&|{requestor_name}|&|{topic_id}"))
     await bot.send_message(-1002175092872, f'''
 Тема: {user_topic}
 Стиль: {style_content}
-Ник автора: {requestor}
+Ник автора: {requestor_name}
+Айди пользователя: {requestor_id}
 Приоритет: {TopicPriority}''',reply_markup=markup)
-    await bot.reply_to(message, text=default_topic_suggest_message + f'\nТвоя позиция в очереди: {await search_number(user_topic,db)}\n\nЧтобы посмотреть свою текущую позицию в очереди, используй команду:\n/queue')
-    await add_count(requestor, 'Telegram', message.from_user.id)
+    await bot.reply_to(message, text=default_topic_suggest_message + f'\nТвоя позиция в очереди: {await search_number(topic_id,db)}\n\nЧтобы посмотреть свою текущую позицию в очереди, используй команду:\n/queue')
+    await add_count(requestor_name, source, requestor_id)
     await sort_counter()
     last_topic_time[message.chat.id] = time.time()
 
@@ -102,15 +118,13 @@ async def ban_themes(message):
 2)Детьми
 3)Алкоголем,никотиносодержащими изделиями(сигареты и тп),наркотиками(прямым упоминанием веществ)
 Пока все,но лишний раз баловаться не нужно''')
-async def send_text(message):
-    if not(message.chat.id in AdminTgIds):
-        await bot.send_message(message.chat.id, "Бро, задай тему с помощью команды /topic, или посмотри подробности с помощью /help")
 
 @bot.message_handler(commands=['queue'])
 async def queue(message):
+    user_id = message.from_user.id
     k = 1
     spisok = ''
-    for i in await get_topic_by_user(message.from_user.first_name,db):
+    for i in await get_topic_by_user(user_id,db):
         number = await search_number(i,db)
         spisok = spisok + f'{k}) {i} - {number} место в очереди\n'
         k += 1
@@ -119,17 +133,29 @@ async def queue(message):
 @bot.callback_query_handler(func=lambda call: True)
 async def del_theme(call):
     calldata = call.data.split('|&|')
-    if calldata[0] == 'delete_theme':
-        await delete_theme(db,calldata[2])
-        await add_warning(calldata[1])
+    but = calldata[0]
+    user_id = calldata[1]
+    user_name = calldata[2]
+    if but == 'delete_theme':
+        topic_id = calldata[3]
+        await delete_theme(db,topic_id)
+        await add_warning(user_name,source,user_id)
         await bot.reply_to(call.message,'Тема удалена, +1 предупреждение')
-    elif calldata[0] == 'ban':
-        await block_user(calldata[1])
-
+    elif but == 'ban':
+        await block_user(user_id,user_name)
+        await bot.reply_to(call.message,'Пользователь заблокирован. Ебать он лох')
+@bot.message_handler(commands='off')
+async def off(message):
+    global mode
+    mode = 'off'
 @bot.message_handler()
 async def send_text(message):
     if not(message.chat.id in AdminTgIds):
-        await bot.send_message(message.chat.id, "Бро, задай тему с помощью команды /topic, или посмотри подробности с помощью /help")
+        if mode == 'on':
+           await bot.send_message(message.chat.id, "Бро, задай тему с помощью команды /topic, или посмотри подробности с помощью /help")
+        else: await bot.send_message(message.chat.id,'Сожалеем,но прием тем на этом стриме уже завершен, ждем ваши темы на следующем.\n    - с любовью,Meyson')
+
+
 
 print('Запуск ТГ бота...')
 

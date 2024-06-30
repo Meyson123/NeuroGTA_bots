@@ -15,7 +15,7 @@ load_dotenv()
 intents = discord.Intents.default()
 intents.messages = True
 intents.message_content = True  # Включение намерений для получения содержимого сообщений
-
+source = "Discord"
 last_topic_time = {}
 last_mashup_time_per_user = {}
 last_mashup_time_single = 0.0
@@ -66,7 +66,7 @@ async def on_message(message):
                             f"Вы можете добавить тему не чаще, чем раз в {int(TopicDelay / 60)} {minuta}.")
                         return
 
-            topic_content = message.content.split("!тема ", 1)[1]
+            topic_content = message.content[6:]
             if "!стиль" in topic_content:
                 style_content = topic_content.split("!стиль ", 1)[1]
                 topic_content = topic_content.split("!стиль ", 1)[0].strip()
@@ -74,7 +74,6 @@ async def on_message(message):
                 style_content = default_style
             # topic_content = message.content[6:]  # Извлекаем содержимое темы из сообщения
             requestor = message.author.name  # Имя автора сообщения
-            source = "Discord"
 
             await add_topic(db, requestor, source, TopicPriority, topic_content, style_content)  # Добавляем тему в БД
             await add_count(message.author.name)
@@ -157,6 +156,7 @@ async def on_message(message):
 
 
 
+print('Запуск ДС бота...')
 
 if Project == 'Gta':
     bot.run(os.getenv('TOKENDSGTA'))

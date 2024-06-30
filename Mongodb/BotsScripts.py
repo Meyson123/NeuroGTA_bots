@@ -4,7 +4,7 @@ import time
 from myConfig import mongodb_address
 import re
 from fuzzywuzzy import fuzz
-
+from bson import ObjectId
 ban_words = [
     'дети', 'детей', 'детям', 'детьми', 'детях',
     'кокаин', 'героин', 'марихуана', 'амфетамин', 'экстази',
@@ -17,13 +17,14 @@ ban_words = [
     'сво','Россия'
 ]
 
-async def add_topic(db, requestor, source, priority, topic, style):
+async def add_topic(db, requestor_name,requestor_id, source, priority, topic, style):
     while True:
         try:
             suggested_topic = {
                 "type": "topic",
                 "style": style,
-                "requestor_id": requestor,
+                "requestor_name": requestor_name,
+                "requestor_id": requestor_id,
                 "source": source,
                 "priority": priority,
                 "topic": topic
@@ -32,7 +33,7 @@ async def add_topic(db, requestor, source, priority, topic, style):
             result = db.suggested_topics.insert_one(suggested_topic)
             print(
                 "Запись с новой темой была успешно добавлена в suggested_topics. ID записи: " + str(result.inserted_id))
-            break
+            return result.inserted_id
         except pymongo.errors.AutoReconnect as e:
             print(f"Ошибка добавления записи в generated_topics. Продолжаем повторные попытки отправки запроса...")
             print(e)
@@ -41,12 +42,13 @@ async def add_topic(db, requestor, source, priority, topic, style):
 
 
 # Добавление мешапа в БД
-async def add_mashup(db, requestor, source, priority, speaker, url):
+async def add_mashup(db, requestor_name,requestor_id, source, priority, speaker, url):
     while True:
         try:
             suggested_topic = {
                 "type": "mashup",
-                "requestor_id": requestor,
+                "requestor_name": requestor_name,
+                "requestor_id": requestor_id,
                 "source": source,
                 "priority": priority,
                 "speaker": speaker,
@@ -54,8 +56,7 @@ async def add_mashup(db, requestor, source, priority, speaker, url):
             }
 
             result = db.suggested_topics.insert_one(suggested_topic)
-            print("Запись с новым мешапом была успешно добавлена в suggested_topics. ID записи: " + str(
-                result.inserted_id))
+            print("Запись с новым мешапом была успешно добавлена в suggested_topics. ID записи: " + str(result.inserted_id))
             break
         except pymongo.errors.AutoReconnect as e:
             print(f"Ошибка добавления записи в generated_topics. Продолжаем повторные попытки отправки запроса...")
@@ -78,14 +79,15 @@ async def check_topic_exists(db, topic, threshold):
         stored_topic = entry.get("topic", "")
         similarity = fuzz.partial_ratio(topic.lower(), stored_topic.lower())
         if similarity >= threshold:
-            return True
+            return [True, similarity,stored_topic]
     
     return False
 
 
-async def delete_theme(db, topic):
+async def delete_theme(db, topic_id):
     collection = db['suggested_topics']
-    document = collection.find_one({"topic": topic})
+    document = collection.find_one({"_id": ObjectId(topic_id)})
+    topic = document['topic']
     if document:
         collection.delete_one({"_id": document["_id"]})
         print(f"Тема '{topic}' успешно удалена из suggested_topics.")

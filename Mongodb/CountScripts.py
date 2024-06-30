@@ -8,13 +8,7 @@ db = client['Director']
 collection = db['Counter_topics_by_user']
 
 
-async def sort_counter():
-    # Получение и сохранение отсортированных документов
-    sorted_documents = list(collection.find().sort('count', -1))
 
-    if sorted_documents:
-        collection.delete_many({})
-        collection.insert_many(sorted_documents)
 
 
 # Создание нового пользователя
@@ -28,6 +22,11 @@ async def new_user(username, source, id):
     }
     collection.insert_one(shema)
 
+async def block_user(id,username):
+    collection.delete_one({'id': id})
+    BlackList = db['BlackList']
+    BlackList.insert_one({'id': id})
+    print(f'Пользователь {username} был заблокирован')
 
 # Увелечение счета пользователя (на 1)
 async def add_count(username, source, id):
@@ -40,25 +39,21 @@ async def add_count(username, source, id):
         await add_count(username, source, id)
 
 
-async def add_warning(username):
-    result = collection.update_one({'username': username}, {'$inc': {'warnings': 1}})
+async def add_warning(username,source,id):
+    result = collection.update_one({'id': id}, {'$inc': {'warnings': 1}})
     if result.matched_count:
         pass
     else:
-        await new_user(username)
-        await add_warning(username)
-        return collection.find_one({'username': username})['warnings']
+        await new_user(username,source,id)
+        await add_warning(username,source,id)
+    return collection.find_one({'id': id})['warnings']
 
 # Удаление пользователя
-async def block_user(username):
-    collection.delete_one({'username': username})
-    BlackList = db['BlackList']
-    BlackList.insert_one({'username':username})
 
 
 
 
-async def search_nick(username,name_of_col):
+async def search_nick(username,name_of_col,source,id):
     if name_of_col == 'BlackList':
         col = db[name_of_col]
         user = col.find_one({'username': username})
@@ -70,6 +65,13 @@ async def search_nick(username,name_of_col):
         if user:
             pass
         else:
-            await new_user(username)
+            await new_user(username,source,id)
 
+async def sort_counter():
+    # Получение и сохранение отсортированных документов
+    sorted_documents = list(collection.find().sort('count', -1))
+
+    if sorted_documents:
+        collection.delete_many({})
+        collection.insert_many(sorted_documents)
 

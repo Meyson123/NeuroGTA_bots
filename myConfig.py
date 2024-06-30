@@ -17,7 +17,7 @@ mongodb_address = 'mongodb+srv://chubemba:klMBAQo6ZgfcEWqY@aistreams.5lhluvc.mon
 TopicDelay = 300
 TopicDelayTg = 300
 MashupDelay = 60
-
+threshold = 80
 CanAddTopic = True
 CanAddMashup = False
 
