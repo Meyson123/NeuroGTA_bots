@@ -3,6 +3,7 @@ import pymongo
 import time
 from myConfig import mongodb_address
 import re
+from fuzzywuzzy import fuzz
 
 ban_words = [
     'дети', 'детей', 'детям', 'детьми', 'детях',
@@ -66,6 +67,19 @@ async def filter(topic):
     for word in ban_words:
         if word.lower() in topic.lower():
             return True
+    return False
+
+async def check_topic_exists(db, topic, threshold):
+    collection = db['suggested_topics']
+    cursor = collection.find({}, {"topic": 1, "_id": 0})
+    
+    # Поиск темы с достаточным уровнем совпадения
+    for entry in cursor:
+        stored_topic = entry.get("topic", "")
+        similarity = fuzz.partial_ratio(topic.lower(), stored_topic.lower())
+        if similarity >= threshold:
+            return True
+    
     return False
 
 

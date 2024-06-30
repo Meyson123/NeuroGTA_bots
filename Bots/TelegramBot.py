@@ -9,7 +9,7 @@ from telebot.types import InlineKeyboardMarkup,InlineKeyboardButton
 from myConfig import AdminTgIds, NeedTopicDelay, TopicDelayTg, TopicPriority, \
     default_topic_suggest_message, default_style
 from Mongodb.CountScripts import add_count, sort_counter,add_warning,block_user,search_nick
-from Mongodb.BotsScripts import add_topic,connect_to_mongodb,filter,delete_theme,search_number,get_topic_by_user
+from Mongodb.BotsScripts import add_topic,connect_to_mongodb,filter,delete_theme,search_number,get_topic_by_user,check_topic_exists
 
 
 load_dotenv()
@@ -49,11 +49,16 @@ async def topic(message):
     if await search_nick(requestor,'BlackList'):
         await bot.send_message(message.chat.id,'Сожалеем,но вы заблокированы за нарушение правил. Вы можете попробовать вымолить прощение у @Meyson420')
         return
+    if await check_topic_exists(db, user_topic, 70):
+         last_topic_time[message.chat.id] = time.time()
+         await bot.send_message(message.chat.id, 'Давай по новой миша, все хуйня')
+         return
     if user_topic == '' or user_topic == 'NeuroGta_bot':
         await bot.send_message(message.chat.id, 'Тема не может быть пустой. Пожалуйста, напиши свою тему сразу после команды /topic')
         return
     if await filter(user_topic):
         warnings = await add_warning(requestor)
+        last_topic_time[message.chat.id] = time.time()
         await bot.send_message(message.chat.id, 'Ай-ай-ай,у нас тут так не принято. Не нужно кидать запрещенные темы\n /ban_themes - Запрещенные темы')
         await bot.send_message(message.chat.id,f'На данный момент у вас {warnings} предупреждений.')
         await bot.send_message(-1002175092872, f'''
@@ -86,7 +91,7 @@ async def topic(message):
 Ник автора: {requestor}
 Приоритет: {TopicPriority}''',reply_markup=markup)
     await bot.reply_to(message, text=default_topic_suggest_message + f'\nТвоя позиция в очереди: {await search_number(user_topic,db)}\n\nЧтобы посмотреть свою текущую позицию в очереди, используй команду:\n/queue')
-    await add_count(requestor)
+    await add_count(requestor, 'Telegram', message.from_user.id)
     await sort_counter()
     last_topic_time[message.chat.id] = time.time()
 

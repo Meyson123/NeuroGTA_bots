@@ -18,9 +18,11 @@ async def sort_counter():
 
 
 # Создание нового пользователя
-async def new_user(username):
+async def new_user(username, source, id):
     shema = {
         'username': username,
+        'source': source,
+        'id': id,
         'count': 0,
         'warnings': 0
     }
@@ -28,14 +30,14 @@ async def new_user(username):
 
 
 # Увелечение счета пользователя (на 1)
-async def add_count(username):
-    result = collection.update_one({'username': username}, {'$inc': {'count': 1}})
+async def add_count(username, source, id):
+    result = collection.update_one({'id': id}, {'$inc': {'count': 1}})
 
     if result.matched_count:
         pass
     else:
-        await new_user(username)
-        await add_count(username)
+        await new_user(username, source, id)
+        await add_count(username, source, id)
 
 
 async def add_warning(username):
