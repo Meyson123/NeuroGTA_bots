@@ -1,6 +1,7 @@
 import asyncio
 import os
 import time
+
 from dotenv import load_dotenv
 from telebot.async_telebot import AsyncTeleBot, types
 from telebot.types import InlineKeyboardMarkup,InlineKeyboardButton
@@ -81,10 +82,10 @@ async def topic(message):
         style_content = default_style
     await add_topic(db, requestor, source, TopicPriority, user_topic, style_content)
     markup = InlineKeyboardMarkup()
-    markup.add(InlineKeyboardButton('🗑 Удалить тему', callback_data="delete_theme " + requestor))
-    markup.add(InlineKeyboardButton('🖕 Заблокировать', callback_data= "ban " + requestor))
+    markup.add(InlineKeyboardButton('🗑 Удалить тему', callback_data=f"delete_theme {requestor} {user_topic}"))
+    markup.add(InlineKeyboardButton('🖕 Заблокировать', callback_data= f"ban {requestor} {user_topic}"))
     await bot.send_message(-1002175092872, f'''
-Тема: |{user_topic}|
+Тема: {user_topic}
 Стиль: {style_content}
 Ник автора: {requestor}
 Приоритет: {TopicPriority}''',reply_markup=markup)
@@ -117,9 +118,9 @@ async def queue(message):
 @bot.callback_query_handler(func=lambda call: True)
 async def del_theme(call):
     calldata = call.data.split(' ')
+    print(calldata)
     if calldata[0] == 'delete_theme':
-        del_topic = str(call.message.text).split('|')[1]
-        await delete_theme(db,del_topic)
+        await delete_theme(db,calldata[2])
         await add_warning(calldata[1])
         await bot.reply_to(call.message,'Тема удалена, +1 предупреждение')
     elif calldata[0] == 'ban':

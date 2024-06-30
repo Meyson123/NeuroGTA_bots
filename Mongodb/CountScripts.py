@@ -47,7 +47,7 @@ async def add_warning(username):
     else:
         await new_user(username)
         await add_warning(username)
-        return collection.find_one({'username': username})['warning']
+        return collection.find_one({'username': username})['warnings']
 
 # Удаление пользователя
 async def block_user(username):

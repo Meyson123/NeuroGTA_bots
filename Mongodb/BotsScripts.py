@@ -69,10 +69,14 @@ async def filter(topic):
     return False
 
 
-async def delete_theme(db,topic):
-    collection = db['suggested_topic']
-    collection.find_one({"topic": topic})
-    collection.delete_one({"topic": topic })
+async def delete_theme(db, topic):
+    collection = db['suggested_topics']
+    document = collection.find_one({"topic": topic})
+    if document:
+        collection.delete_one({"_id": document["_id"]})
+        print(f"Тема '{topic}' успешно удалена из suggested_topics.")
+    else:
+        print(f"Тема '{topic}' не найдена в suggested_topics.")
 
 def connect_to_mongodb():
     while True:
