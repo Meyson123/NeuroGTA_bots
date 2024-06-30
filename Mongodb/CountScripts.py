@@ -12,11 +12,9 @@ async def sort_counter():
     # Получение и сохранение отсортированных документов
     sorted_documents = list(collection.find().sort('count', -1))
 
-    # Удаление всех документов из коллекции, только если есть что удалять
-    collection.delete_many({})
-    for document in sorted_documents:
-        collection.insert_one(document).inserted_id()
-    pass
+    if sorted_documents:
+        collection.delete_many({})
+        collection.insert_many(sorted_documents)
 
 
 # Создание нового пользователя

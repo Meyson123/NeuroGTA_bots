@@ -114,7 +114,6 @@ async def queue(message):
 @bot.callback_query_handler(func=lambda call: True)
 async def del_theme(call):
     calldata = call.data.split('|&|')
-    print(calldata)
     if calldata[0] == 'delete_theme':
         await delete_theme(db,calldata[2])
         await add_warning(calldata[1])
