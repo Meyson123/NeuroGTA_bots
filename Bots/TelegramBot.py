@@ -111,7 +111,7 @@ async def topic(message):
     await sort_counter()
     last_topic_time[message.chat.id] = time.time()
 
-@bot.message_handler(commands=['banned_themes'])
+@bot.message_handler(commands=['ban_themes'])
 async def ban_themes(message):
     await bot.send_message(message.chat.id,'''У нас на стриме запрещены темы связанные с:
 1)Политикой
@@ -145,16 +145,22 @@ async def del_theme(call):
     elif but == 'ban':
         await block_user(user_id,user_name)
         await bot.reply_to(call.message,'Пользователь заблокирован. Ебать он лох')
+
 @bot.message_handler(commands='off')
 async def off(message):
+    if not(message.chat.id in AdminTgIds):
+        return
     global mode
     mode = 'off'
+
 @bot.message_handler()
 async def send_text(message):
     if not(message.chat.id in AdminTgIds):
         if mode == 'on':
            await bot.send_message(message.chat.id, "Бро, задай тему с помощью команды /topic, или посмотри подробности с помощью /help")
-        else: await bot.send_message(message.chat.id,'Сожалеем,но прием тем на этом стриме уже завершен, ждем ваши темы на следующем.\n    - с любовью,Meyson')
+        else: 
+            await bot.send_message(message.chat.id,'Сожалеем,но прием тем на этом стриме уже завершен, ждем ваши темы на следующем.\n    - с любовью,Meyson')
+            await bot.send_sticker(message.chat.id,'CAACAgIAAxkBAAEMZ-JmgY_WuGvpBWdSmJ99nMQgy7qMqQACBxkAAs0xEEghvxdEJ73qJDUE')
 
 
 
