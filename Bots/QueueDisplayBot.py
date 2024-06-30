@@ -1,6 +1,5 @@
-from pymongo import MongoClient
 import time
-from myConfig import mongodb_address, QueueGeneratedText, QueueSuggestedText
+from myConfig import QueueGeneratedText, QueueSuggestedText
 from Mongodb.BotsScripts import connect_to_mongodb
 # Путь к файлу, который будет читаться OBS
 output_file = "QueueDisplayData.txt"

@@ -11,7 +11,7 @@ default_style = ''
 
 DiscordToken = 'Gta'
 
-mongodb_address = 'mongodb://26.62.113.122:27017'
+mongodb_address = 'mongodb+srv://chubemba:klMBAQo6ZgfcEWqY@aistreams.5lhluvc.mongodb.net/'
 
 # Параметры
 TopicDelay = 300

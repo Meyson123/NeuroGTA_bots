@@ -1,11 +1,9 @@
 import time
-import pymongo
-from pymongo import MongoClient
 import discord
 from discord.ext import commands
 import os
 from dotenv import load_dotenv
-from myConfig import mongodb_address, TopicDelay, MashupDelay, CanAddTopic, CanAddMashup, NeedTopicDelay, \
+from myConfig import TopicDelay, MashupDelay, CanAddTopic, CanAddMashup, NeedTopicDelay, \
     NeedMashupDelay, NeedMashupDelayPerUser, TopicsChatName, MashupsChatName, AdminNames, valid_speakers, TopicPriority, \
     MashapPriority, replacements, default_topic_suggest_message, default_style, DiscordToken
 from Mongodb.CountScripts import add_count,sort_counter
@@ -44,7 +42,7 @@ async def on_message(message):
 
     if message.author == bot.user:
         return
-
+    message.content = message.content.lower()
     channel_name = message.channel.name
     # print(f"Сообщение пришло из чата с названием: {channel_name}")
 

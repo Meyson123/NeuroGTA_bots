@@ -2,7 +2,19 @@ from pymongo import MongoClient
 import pymongo
 import time
 from myConfig import mongodb_address
+import re
 
+ban_words = [
+    'дети', 'детей', 'детям', 'детьми', 'детях',
+    'кокаин', 'героин', 'марихуана', 'амфетамин', 'экстази',
+    'Сирия', 'Афганистан', 'Ирак', 'Украина', 'Ливия',
+    'метамфетамин', 'пропан', 'лизергиновая кислота','мет','меф',
+    'Сирия', 'Афганистан', 'Ирак', 'Украина', 'Ливия', 'Сомали', 'Йемен', 'Судан', 'Северная Корея',
+    'девочка', 'девочки', 'девочке', 'девочку', 'девочкой', 'девочках',
+    'мальчик', 'мальчика', 'мальчику', 'мальчиком', 'мальчике',
+    'ребенок', 'ребенка', 'ребенку', 'ребенком', 'ребенке', 'дети',
+    'сво','Россия'
+]
 
 async def add_topic(db, requestor, source, priority, topic, style):
     while True:
@@ -49,16 +61,53 @@ async def add_mashup(db, requestor, source, priority, speaker, url):
             print(e)
             time.sleep(1)
 
+
+async def filter(topic):
+    for word in ban_words:
+        if word.lower() in topic.lower():
+            return True
+    return False
+
+
+async def delete_theme(db,topic):
+    collection = db['suggested_topic']
+    collection.find_one({"topic": topic})
+    collection.delete_one({"topic": topic })
+
 def connect_to_mongodb():
     while True:
         try:
             client = MongoClient(mongodb_address)
-            database = client['Director']
-            return database
+            db = client['Director']
+            return db
         except pymongo.errors.AutoReconnect as e:
             print(f"Ошибка установки соединения с mongodb. Продолжаем повторные попытки подключения...")
             print(e)
             time.sleep(1)
+
+async def search_number(topic,db):
+    suggested = db["suggested_topics"]
+    generated = db["generated_topics"]
+    document = suggested.find_one({'topic': topic})
+    if document:
+        # Получаем порядковый номер документа в коллекции
+        document_number = len(list(suggested.find({'_id': document['_id']}))) + 1
+        return document_number + generated.count_documents({})
+    else:
+        document = generated.find_one({'topic': topic})
+        if document:
+            document_number = len(list(suggested.find({'_id': {'$lt': document['_id']}}))) + 1
+            return document_number
+async def get_topic_by_user(username,db):
+    suggested = db["suggested_topics"]
+    generated = db["generated_topics"]
+    all_topics = []
+    for sug_topic in list(suggested.find({'requestor_id':username})):
+        all_topics.append(sug_topic['topic'])
+    for gen_topic in list(generated.find({'requestor_id':username})):
+        all_topics.append(gen_topic['topic'])
+    return all_topics
+
 
 def replace_name(name, replacements):
     for old, new in replacements:

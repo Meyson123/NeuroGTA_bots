@@ -1,11 +1,7 @@
-import requests
 import json
 import socketio
-import time
-import pymongo
-from pymongo import MongoClient
 import os
-from myConfig import valid_speakers, replacements, mongodb_address
+from myConfig import valid_speakers, replacements
 from dotenv import load_dotenv
 from Mongodb.BotsScripts import add_topic,add_mashup,connect_to_mongodb,replace_name
 
