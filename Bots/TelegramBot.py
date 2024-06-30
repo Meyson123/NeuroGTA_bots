@@ -1,28 +1,24 @@
 import asyncio
 import os
+import sys
 import time
-
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 from dotenv import load_dotenv
 from telebot.async_telebot import AsyncTeleBot, types
 from telebot.types import InlineKeyboardMarkup,InlineKeyboardButton
-
 from myConfig import AdminTgIds, NeedTopicDelay, TopicDelayTg, TopicPriority, \
     default_topic_suggest_message, default_style
-
 from Mongodb.CountScripts import add_count, sort_counter,add_warning,block_user,search_nick
 from Mongodb.BotsScripts import add_topic,connect_to_mongodb,filter,delete_theme,search_number,get_topic_by_user
+
+
 load_dotenv()
 bot = AsyncTeleBot(os.getenv('TOKENTG'))
 
 last_topic_time = {}
 
 
-
-
-
 # Функция подключения к mongodb
-
-
 db = connect_to_mongodb()
 
 
@@ -82,14 +78,14 @@ async def topic(message):
         style_content = default_style
     await add_topic(db, requestor, source, TopicPriority, user_topic, style_content)
     markup = InlineKeyboardMarkup()
-    markup.add(InlineKeyboardButton('🗑 Удалить тему', callback_data=f"delete_theme {requestor} {user_topic}"))
-    markup.add(InlineKeyboardButton('🖕 Заблокировать', callback_data= f"ban {requestor} {user_topic}"))
+    markup.add(InlineKeyboardButton('🗑 Удалить тему', callback_data=f"delete_theme|&|{requestor}|&|{user_topic}"))
+    markup.add(InlineKeyboardButton('🖕 Заблокировать', callback_data= f"ban|&|{requestor}|&|{user_topic}"))
     await bot.send_message(-1002175092872, f'''
 Тема: {user_topic}
 Стиль: {style_content}
 Ник автора: {requestor}
 Приоритет: {TopicPriority}''',reply_markup=markup)
-    await bot.reply_to(message, text=default_topic_suggest_message + f'\nВаша позиция в очереди: {await search_number(user_topic,db)}\n Чтобы посмотреть текущую свою позицию в списке,используйте /queue')
+    await bot.reply_to(message, text=default_topic_suggest_message + f'\nТвоя позиция в очереди: {await search_number(user_topic,db)}\n\nЧтобы посмотреть свою текущую позицию в очереди, используй команду:\n/queue')
     await add_count(requestor)
     await sort_counter()
     last_topic_time[message.chat.id] = time.time()
@@ -117,7 +113,7 @@ async def queue(message):
 
 @bot.callback_query_handler(func=lambda call: True)
 async def del_theme(call):
-    calldata = call.data.split(' ')
+    calldata = call.data.split('|&|')
     print(calldata)
     if calldata[0] == 'delete_theme':
         await delete_theme(db,calldata[2])

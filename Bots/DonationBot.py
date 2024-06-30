@@ -1,6 +1,8 @@
 import json
 import socketio
 import os
+import sys
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 from myConfig import valid_speakers, replacements
 from dotenv import load_dotenv
 from Mongodb.BotsScripts import add_topic,add_mashup,connect_to_mongodb,replace_name
@@ -38,7 +40,7 @@ def on_connect():
     sio.emit('add-user', {"token": os.getenv('TOKENDON'), "type": "alert_widget"})
 
 @sio.on('donation')
-def on_message(data):
+async def on_message(data):
     donat = json.loads(data)
     
     user = donat['username']
@@ -75,7 +77,7 @@ def on_message(data):
                 speaker, url = mashup.split(" ", 1)
                 if speaker in valid_speakers:
                     eng_speaker = replace_name(speaker, replacements)
-                    add_mashup(db, requestor, "Donat", 2, eng_speaker, url)
+                    await add_mashup(db, requestor, "Donat", 2, eng_speaker, url)
                 else:
                     print("ОШИБКА! НЕОБХОДИМО РУЧНОЕ ДОБАВЛЕНИЕ")
                     print()
@@ -91,7 +93,7 @@ def on_message(data):
             else:
                 style_content = "Комедийный, поучительный"
             requestor = f'Донатер {user}'
-            add_topic(db, requestor, "Donat", 2, message, style_content)  # Добавляем тему в БД
+            await add_topic(db, requestor, "Donat", 2, message, style_content)  # Добавляем тему в БД
             
         elif FinalAmount == InteractionOneSumRub:
             print('Цветок задоначен')
