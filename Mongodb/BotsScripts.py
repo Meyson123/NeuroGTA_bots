@@ -81,7 +81,7 @@ async def check_topic_exists(db, topic, threshold):
         if similarity >= threshold:
             return [True, similarity,stored_topic]
     
-    return False
+    return [False]
 
 
 async def delete_theme(db, topic_id):
@@ -105,16 +105,16 @@ def connect_to_mongodb():
             print(e)
             time.sleep(1)
 
-async def search_number(topic,db):
+async def search_number(topic_id,db):
     suggested = db["suggested_topics"]
     generated = db["generated_topics"]
-    document = suggested.find_one({'topic': topic})
+    document = suggested.find_one({"_id": ObjectId(topic_id)})
     if document:
         # Получаем порядковый номер документа в коллекции
         document_number = suggested.count_documents({'_id': {'$lt': document['_id']}}) + 1
         return document_number + generated.count_documents({})
     else:
-        document = generated.find_one({'topic': topic})
+        document = generated.find_one({"_id": ObjectId(topic_id)})
         if document:
             document_number = generated.count_documents({'_id': {'$lt': document['_id']}}) + 1
             return document_number
@@ -126,9 +126,9 @@ async def get_topic_by_user(username,db):
     generated = db["generated_topics"]
     all_topics = []
     for sug_topic in list(suggested.find({'requestor_id':username})):
-        all_topics.append(sug_topic['topic'])
+        all_topics.append(sug_topic)
     for gen_topic in list(generated.find({'requestor_id':username})):
-        all_topics.append(gen_topic['topic'])
+        all_topics.append(gen_topic)
     return all_topics
 
 

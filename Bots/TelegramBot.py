@@ -107,7 +107,7 @@ async def topic(message):
 Айди пользователя: {requestor_id}
 Приоритет: {TopicPriority}''',reply_markup=markup)
     await bot.reply_to(message, text=default_topic_suggest_message + f'\nТвоя позиция в очереди: {await search_number(topic_id,db)}\n\nЧтобы посмотреть свою текущую позицию в очереди, используй команду:\n/queue')
-    await add_count(requestor_name, source, requestor_id)
+    await add_count(requestor_name, source, str(requestor_id))
     await sort_counter()
     last_topic_time[message.chat.id] = time.time()
 
@@ -124,9 +124,10 @@ async def queue(message):
     user_id = message.from_user.id
     k = 1
     spisok = ''
-    for i in await get_topic_by_user(user_id,db):
-        number = await search_number(i,db)
-        spisok = spisok + f'{k}) {i} - {number} место в очереди\n'
+    for topics in await get_topic_by_user(user_id,db):
+        number = await search_number(topics['_id'],db)
+        topic = topics['topic']
+        spisok = spisok + f'{k}) {topic} - {number} место в очереди\n'
         k += 1
     await bot.send_message(message.chat.id,spisok)
 
