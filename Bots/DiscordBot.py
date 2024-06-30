@@ -7,7 +7,7 @@ sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 from dotenv import load_dotenv
 from myConfig import TopicDelay, MashupDelay, CanAddTopic, CanAddMashup, NeedTopicDelay, \
     NeedMashupDelay, NeedMashupDelayPerUser, TopicsChatName, MashupsChatName, AdminNames, valid_speakers, TopicPriority, \
-    MashapPriority, replacements, default_topic_suggest_message, default_style, DiscordToken
+    MashapPriority, replacements, default_topic_suggest_message, default_style, Project
 from Mongodb.CountScripts import add_count,sort_counter
 from Mongodb.BotsScripts import add_topic,add_mashup,connect_to_mongodb,replace_name
 load_dotenv()
@@ -158,7 +158,7 @@ async def on_message(message):
 
 
 
-if DiscordToken == 'Gta':
+if Project == 'Gta':
     bot.run(os.getenv('TOKENDSGTA'))
 else:
     bot.run(os.getenv('TOKENDSSMESH'))

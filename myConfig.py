@@ -1,5 +1,6 @@
 
 # AI GTA:
+Project = 'Gta'
 
 valid_speakers = ["CJ", "SMOKE"]
 replacements = [
@@ -9,7 +10,6 @@ replacements = [
 default_topic_suggest_message = 'Окей, бро! Добавил тему в список'
 default_style = ''
 
-DiscordToken = 'Gta'
 
 mongodb_address = 'mongodb+srv://chubemba:klMBAQo6ZgfcEWqY@aistreams.5lhluvc.mongodb.net/'
 
@@ -37,3 +37,13 @@ AdminTgIds = [1484475666, 709479935, -1002175092872]
 #Queue config
 QueueGeneratedText = "Темы готовы:"
 QueueSuggestedText = "Темы в очереди:"
+
+#Donat config
+DonatedTopicSumRub = 25
+DonatedMashupSumRub = 0
+DonatedInteractionOneSumRub = 0
+DonatedInteractionTwoSumRub = 0
+DonatEnableTopics = True
+DonatEnableMashups = False
+DonatEnableInteractionOne = False
+DonatEnableInteractionTwo = False

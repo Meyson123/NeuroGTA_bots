@@ -2,42 +2,28 @@ import json
 import socketio
 import os
 import sys
+import asyncio
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
-from myConfig import valid_speakers, replacements
+from myConfig import Project, valid_speakers, replacements, DonatEnableInteractionOne, DonatEnableInteractionTwo, \
+    DonatEnableTopics, DonatEnableMashups, DonatedInteractionOneSumRub, DonatedInteractionTwoSumRub, \
+    DonatedMashupSumRub, DonatedTopicSumRub
 from dotenv import load_dotenv
-from Mongodb.BotsScripts import add_topic,add_mashup,connect_to_mongodb,replace_name
+from Mongodb.BotsScripts import add_topic, add_mashup, connect_to_mongodb, replace_name
 
 load_dotenv()
 
-# Добавляем путь к каталогу, где находится _myConfig.py
-#sys.path.append(r'N:\AI-Stream-Kit\Stream-Kit\Configs')
-#import _myConfig
-
-# TOKENDONAT = _myConfig.TOKENDONAT
-
-# Credentials
-# mongodb_address = _myConfig.mongodb_address
-
-InteractionOneSumRub = 25
-InteractionTwoSumRub = 30
-AddTopicSumRub = 50
-AddMashupSumRub = 100
-
-# valid_speakers = _myConfig.valid_speakers
-# replacements = _myConfig.replacements
-
-# Функция подключения к mongodb
-
-     
-db = connect_to_mongodb()  
-
+db = connect_to_mongodb()
 print(db)
 
-sio = socketio.Client()
+sio = socketio.AsyncClient()
 
-@sio.on('connect')
-def on_connect():
-    sio.emit('add-user', {"token": os.getenv('TOKENDON'), "type": "alert_widget"})
+@sio.event
+async def connect():
+    if Project == 'Gta':
+        token = (os.getenv('TOKENDONATGTA'))
+    else:
+        token = (os.getenv('TOKENDONATSMESH'))
+    await sio.emit('add-user', {"token": token, "type": "alert_widget"})
 
 @sio.on('donation')
 async def on_message(data):
@@ -60,12 +46,11 @@ async def on_message(data):
         amountSplit = amount.split('.')
         FinalAmount = int(amountSplit[0])
     
-    
-    if (currency == 'RUB'):
-        if (FinalAmount == AddMashupSumRub):
+    if currency == 'RUB':
+        if FinalAmount == DonatedMashupSumRub and DonatEnableMashups:
             print('Мэшап задоначен')
             
-            if not(message.startswith('!мэшап')):
+            if not message.startswith('!мэшап'):
                 print('Некорректный запрос мэшапа!')
                 print()
                 return
@@ -85,7 +70,7 @@ async def on_message(data):
                 print("ОШИБКА! НЕОБХОДИМО РУЧНОЕ ДОБАВЛЕНИЕ")
                 print()
             
-        elif (FinalAmount == AddTopicSumRub):
+        elif FinalAmount == DonatedTopicSumRub and DonatEnableTopics:
             print('Тема задоначена')
             if "!стиль" in message:
                 style_content = message.split("!стиль ", 1)[1]
@@ -95,29 +80,35 @@ async def on_message(data):
             requestor = f'Донатер {user}'
             await add_topic(db, requestor, "Donat", 2, message, style_content)  # Добавляем тему в БД
             
-        elif FinalAmount == InteractionOneSumRub:
+        elif FinalAmount == DonatedInteractionOneSumRub and DonatEnableInteractionOne:
             print('Цветок задоначен')
             data = 'Flower: ' + str(donat['username'])
-            addDonationData(data)
-        elif FinalAmount == InteractionTwoSumRub:
+            await add_donation_data(data)
+            
+        elif FinalAmount == DonatedInteractionTwoSumRub and DonatEnableInteractionTwo:
             print('Танец задоначен')
-            addDonationData('Dance')
-            
+            await add_donation_data('Dance')
         
-def clear_file():
-    with open("DonationData.txt", "a", encoding="utf-8") as file:
-        file.write('')
-        
-            
-def addDonationData(str):
-    with open("DonationData.txt", "a", encoding="utf-8") as file:
-        file.write(str + "\n")
-        print("Добавлено в файл: ", str)
-        print()
-        
-        
-        # Добавление сценария в БД
+async def clear_file():
+    try:
+        with open("DonationData.txt", "w", encoding="utf-8") as file:
+            file.write('')
+    except Exception as e:
+        print(f"Ошибка при очистке файла: {e}")
 
+async def add_donation_data(data):
+    try:
+        with open("DonationData.txt", "a", encoding="utf-8") as file:
+            file.write(data + "\n")
+            print("Добавлено в файл: ", data)
+            print()
+    except Exception as e:
+        print(f"Ошибка при записи в файл: {e}")
 
-sio.connect('wss://socket.donationalerts.ru:443',transports='websocket')
-clear_file()
+async def main():
+    await sio.connect('wss://socket.donationalerts.ru:443', transports='websocket')
+    await clear_file()
+    await sio.wait()
+
+if __name__ == '__main__':
+    asyncio.run(main())

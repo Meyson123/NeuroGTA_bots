@@ -1,5 +1,6 @@
-
 # AI Нейропряники:
+
+Project = 'Смешарики'
 
 valid_speakers = ["Ёжик", "Крош", "Нюша", "Бараш", "Карыч", "Лосяш"]
 replacements = [
@@ -13,7 +14,6 @@ replacements = [
 default_topic_suggest_message = 'Отлично! Записал тему в книжечку!'
 default_style = 'Комедийный, поучительный'
 
-DiscordToken = 'Смешарики'
 
 mongodb_address = 'mongodb://localhost:27017'
 
@@ -41,3 +41,13 @@ AdminTgIds = [1484475666, 709479935,-1002175092872]
 #Queue config
 QueueGeneratedText = "Темы готовы:"
 QueueSuggestedText = "Темы в книжечке:"
+
+#Donat config
+DonatedTopicSumRub = 50
+DonatedMashupSumRub = 100
+DonatedInteractionOneSumRub = 25
+DonatedInteractionTwoSumRub = 30
+DonatEnableTopics = True
+DonatEnableMashups = True
+DonatEnableInteractionOne = True
+DonatEnableInteractionTwo = True
