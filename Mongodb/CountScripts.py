@@ -46,22 +46,24 @@ async def add_warning(username,source,id):
     else:
         await new_user(username,source,id)
         await add_warning(username,source,id)
-    return collection.find_one({'id': id})['warnings']
 
-# Удаление пользователя
-
-
+async def warnings_by_user(username,source,id):
+    try:
+        return collection.find_one({'id': id})['warnings']
+    except TypeError:
+        await new_user(username,source,id)
+        await warnings_by_user(username,source,id)
 
 
 async def search_nick(username,name_of_col,source,id):
     if name_of_col == 'BlackList':
         col = db[name_of_col]
-        user = col.find_one({'username': username})
+        user = col.find_one({'id': id})
         if user:
             return True
         else: return False
     else:
-        user = collection.find_one({'username': username})
+        user = collection.find_one({'id': id})
         if user:
             pass
         else:

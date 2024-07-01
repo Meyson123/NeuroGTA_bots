@@ -8,7 +8,7 @@ from telebot.async_telebot import AsyncTeleBot, types
 from telebot.types import InlineKeyboardMarkup,InlineKeyboardButton
 from myConfig import AdminTgIds, NeedTopicDelay, TopicDelayTg, TopicPriority, \
     default_topic_suggest_message, default_style,threshold
-from Mongodb.CountScripts import add_count, sort_counter,add_warning,block_user,search_nick
+from Mongodb.CountScripts import warnings_by_user,add_count, sort_counter,add_warning,block_user,search_nick
 from Mongodb.BotsScripts import add_topic,connect_to_mongodb,filter,delete_theme,search_number,\
     get_topic_by_user,check_topic_exists, get_requestor_name_by_topic_id
 
@@ -44,46 +44,51 @@ async def help_message(message):
 # Передача тем от бота
 @bot.message_handler(commands=['topic'])
 async def topic(message):
-    user_topic = message.text[7:]
+    topic = message.text[7:]
     requestor_name = message.from_user.first_name
     requestor_id = message.from_user.id
+    warnings = await warnings_by_user(requestor_id)
     if mode == 'off':
-        await bot.send_message(message.chat.id,'Сожалеем,но прием тем на этом стриме уже завершен, ждем ваши темы на следующем.\n                                                        с любовью,Meyson')
+        await bot.send_message(message.chat.id,'Сожалеем,но прием тем на этом стриме уже завершен, ждем ваши темы на следующем.\n -с любовью,Meyson')
         await bot.send_sticker(message.chat.id,'CAACAgIAAxkBAAEMZ-JmgY_WuGvpBWdSmJ99nMQgy7qMqQACBxkAAs0xEEghvxdEJ73qJDUE')
         return
+    if warnings == 5:
+        await block_user(requestor_id)
     if await search_nick(requestor_name,'BlackList',source,requestor_id):
         await bot.send_message(message.chat.id,'Сожалеем,но вы заблокированы за нарушение правил. Вы можете попробовать вымолить прощение у @Meyson420')
         return
-    if user_topic == '' or user_topic == 'NeuroGta_bot':
+    if topic == '' or topic == 'NeuroGta_bot':
         await bot.send_message(message.chat.id, 'Тема не может быть пустой. Пожалуйста, напиши свою тему сразу после команды /topic')
         return
-    if await filter(user_topic):
-        warnings = await add_warning(requestor_name,source,requestor_id)
-        last_topic_time[message.chat.id] = time.time()
+    if await filter(topic):
+        await add_warning(requestor_name,source,requestor_id)
+        last_topic_time[requestor_id] = time.time()
         await bot.send_message(message.chat.id, 'Ай-ай-ай,у нас тут так не принято. Не нужно кидать запрещенные темы\n/ban_themes - Запрещенные темы')
         await bot.send_message(message.chat.id,f'На данный момент у вас {warnings} предупреждений.')
         markup = InlineKeyboardMarkup()
         markup.add(InlineKeyboardButton('🖕 Заблокировать', callback_data= f"ban|&|{requestor_id}"))
         await bot.send_message(-1002175092872, f'''
-Тема: {user_topic}
+Тема заблокирована
+
+Тема: {topic}
 Ник автора: {requestor_name}
 Айди пользователя: {requestor_id}
 Источник: {source}
-Количество предупреждений: {warnings}
-Тема заблокирована''',reply_markup=markup)
+Количество предупреждений: {warnings}''',reply_markup=markup)
         return
-    check_result = await check_topic_exists(db, user_topic, threshold)
+    check_result = await check_topic_exists(db, topic, threshold)
     if check_result[0]:
          procent, orig = check_result[1],check_result[2]
          await bot.send_message(message.chat.id, 'Тема не добавлена!\nТакая тема(или подобная ей) уже есть в очереди.\nПридумайте что-нибудь другое')
          await bot.send_message(-1002175092872, f'''
-Тема: {user_topic}
+Тема заблокирована
+
+Тема: {topic}
 Ник автора: {requestor_name}
 Айди пользователя: {requestor_id}
 Источник: {source}
 Оригинальная тема: {orig}
-Процент сходства: {procent}%
-Тема заблокирована''')
+Процент сходства: {procent}%''')
          return
     if not (message.chat.id in AdminTgIds):
         if NeedTopicDelay:
@@ -94,17 +99,17 @@ async def topic(message):
                 await bot.reply_to(message,
                                    f"Ты можешь добавить тему не чаще, чем раз в {int(TopicDelayTg / 60)} {minuta}.")
                 return
-    if "!стиль" in user_topic:
-        style_content = user_topic.split("!стиль ", 1)[1]
-        user_topic = user_topic.split("!стиль ", 1)[0].strip()
+    if "!стиль" in topic:
+        style_content = topic.split("!стиль ", 1)[1]
+        topic = topic.split("!стиль ", 1)[0].strip()
     else:
         style_content = default_style
-    topic_id = await add_topic(db, requestor_name,requestor_id, source, TopicPriority, user_topic, style_content)
+    topic_id = await add_topic(db, requestor_name,requestor_id, source, TopicPriority, topic, style_content)
     markup = InlineKeyboardMarkup()
     markup.add(InlineKeyboardButton('🗑 Удалить тему', callback_data=f"del|&|{requestor_id}|&|{topic_id}"))
     markup.add(InlineKeyboardButton('🖕 Заблокировать', callback_data= f"ban|&|{requestor_id}|&|{topic_id}"))
     await bot.send_message(-1002175092872, f'''
-Тема: {user_topic}
+Тема: {topic}
 Стиль: {style_content}
 Ник автора: {requestor_name}
 Айди пользователя: {requestor_id}
@@ -113,7 +118,7 @@ async def topic(message):
     await bot.reply_to(message, text=default_topic_suggest_message + f'\nТвоя позиция в очереди: {await search_number(topic_id,db)}\n\nЧтобы посмотреть свою текущую позицию в очереди, используй команду:\n/queue')
     await add_count(requestor_name, source, str(requestor_id))
     await sort_counter()
-    last_topic_time[message.chat.id] = time.time()
+    last_topic_time[requestor_id] = time.time()
 
 @bot.message_handler(commands=['ban_themes'])
 async def ban_themes(message):
