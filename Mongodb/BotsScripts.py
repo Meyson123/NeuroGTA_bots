@@ -131,6 +131,19 @@ async def get_topic_by_user(username,db):
         all_topics.append(gen_topic)
     return all_topics
 
+async def get_requestor_name_by_topic_id(topic_id, db):
+    try:
+        document = db["suggested_topics"].find_one({"_id": ObjectId(topic_id)})
+        if document:
+            info = document['requestor_name']
+            return info
+        else:
+            print(f"Документ с _id '{topic_id}' не найден в коллекции 'suggested_topics'.")
+            return None
+    except pymongo.errors.PyMongoError as e:
+        print(f"Ошибка при поиске информации по _id '{topic_id}' в коллекции 'suggested_topics': {e}")
+        return None
+
 
 def replace_name(name, replacements):
     for old, new in replacements:

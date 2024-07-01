@@ -10,6 +10,7 @@ from myConfig import TopicDelay, MashupDelay, CanAddTopic, CanAddMashup, NeedTop
     MashapPriority, replacements, default_topic_suggest_message, default_style, Project
 from Mongodb.CountScripts import add_count,sort_counter
 from Mongodb.BotsScripts import add_topic,add_mashup,connect_to_mongodb,replace_name
+from TelegramSender import send_topic_to_telegram
 load_dotenv()
 
 intents = discord.Intents.default()
@@ -75,8 +76,10 @@ async def on_message(message):
             # topic_content = message.content[6:]  # Извлекаем содержимое темы из сообщения
             requestor = message.author.name  # Имя автора сообщения
 
-            await add_topic(db, requestor, source, TopicPriority, topic_content, style_content)  # Добавляем тему в БД
-            await add_count(message.author.name)
+            topic_id = await add_topic(db, requestor, message.author.id, source, TopicPriority, topic_content, style_content)  # Добавляем тему в БД
+            print(topic_id)
+            await send_topic_to_telegram(topic_content, style_content, requestor, message.author.id, source, TopicPriority, str(topic_id))
+            await add_count(message.author.name, source, str(message.author.id))
             await sort_counter()
             await message.reply(default_topic_suggest_message, mention_author=False)
 

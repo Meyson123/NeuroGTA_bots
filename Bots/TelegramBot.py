@@ -9,7 +9,8 @@ from telebot.types import InlineKeyboardMarkup,InlineKeyboardButton
 from myConfig import AdminTgIds, NeedTopicDelay, TopicDelayTg, TopicPriority, \
     default_topic_suggest_message, default_style,threshold
 from Mongodb.CountScripts import add_count, sort_counter,add_warning,block_user,search_nick
-from Mongodb.BotsScripts import add_topic,connect_to_mongodb,filter,delete_theme,search_number,get_topic_by_user,check_topic_exists
+from Mongodb.BotsScripts import add_topic,connect_to_mongodb,filter,delete_theme,search_number,\
+    get_topic_by_user,check_topic_exists, get_requestor_name_by_topic_id
 
 
 load_dotenv()
@@ -62,11 +63,12 @@ async def topic(message):
         await bot.send_message(message.chat.id, 'Ай-ай-ай,у нас тут так не принято. Не нужно кидать запрещенные темы\n/ban_themes - Запрещенные темы')
         await bot.send_message(message.chat.id,f'На данный момент у вас {warnings} предупреждений.')
         markup = InlineKeyboardMarkup()
-        markup.add(InlineKeyboardButton('🖕 Заблокировать', callback_data= f"ban|&|{requestor_id}|&|{requestor_name}"))
+        markup.add(InlineKeyboardButton('🖕 Заблокировать', callback_data= f"ban|&|{requestor_id}"))
         await bot.send_message(-1002175092872, f'''
 Тема: {user_topic}
 Ник автора: {requestor_name}
 Айди пользователя: {requestor_id}
+Источник: {source}
 Количество предупреждений: {warnings}
 Тема заблокирована''',reply_markup=markup)
         return
@@ -78,6 +80,7 @@ async def topic(message):
 Тема: {user_topic}
 Ник автора: {requestor_name}
 Айди пользователя: {requestor_id}
+Источник: {source}
 Оригинальная тема: {orig}
 Процент сходства: {procent}%
 Тема заблокирована''')
@@ -98,13 +101,14 @@ async def topic(message):
         style_content = default_style
     topic_id = await add_topic(db, requestor_name,requestor_id, source, TopicPriority, user_topic, style_content)
     markup = InlineKeyboardMarkup()
-    markup.add(InlineKeyboardButton('🗑 Удалить тему', callback_data=f"delete_theme|&|{requestor_id}|&|{requestor_name}|&|{topic_id}"))
-    markup.add(InlineKeyboardButton('🖕 Заблокировать', callback_data= f"ban|&|{requestor_id}|&|{requestor_name}|&|{topic_id}"))
+    markup.add(InlineKeyboardButton('🗑 Удалить тему', callback_data=f"del|&|{requestor_id}|&|{topic_id}"))
+    markup.add(InlineKeyboardButton('🖕 Заблокировать', callback_data= f"ban|&|{requestor_id}|&|{topic_id}"))
     await bot.send_message(-1002175092872, f'''
 Тема: {user_topic}
 Стиль: {style_content}
 Ник автора: {requestor_name}
 Айди пользователя: {requestor_id}
+Источник: {source}
 Приоритет: {TopicPriority}''',reply_markup=markup)
     await bot.reply_to(message, text=default_topic_suggest_message + f'\nТвоя позиция в очереди: {await search_number(topic_id,db)}\n\nЧтобы посмотреть свою текущую позицию в очереди, используй команду:\n/queue')
     await add_count(requestor_name, source, str(requestor_id))
@@ -129,21 +133,21 @@ async def queue(message):
         topic = topics['topic']
         spisok = spisok + f'{k}) {topic} - {number} место в очереди\n'
         k += 1
-    await bot.send_message(message.chat.id,spisok)
+    await bot.send_message(message.chat.id,f'{spisok}\nP.S. Если до твоей темы далеко - за 25₽ можно заказать тему без очереди!\nhttps://www.donationalerts.com/r/neuro_gta')
 
 @bot.callback_query_handler(func=lambda call: True)
 async def del_theme(call):
     calldata = call.data.split('|&|')
     but = calldata[0]
     user_id = calldata[1]
-    user_name = calldata[2]
-    if but == 'delete_theme':
-        topic_id = calldata[3]
+    if but == 'del':
+        topic_id = calldata[2]
+        user_name = await get_requestor_name_by_topic_id(topic_id, db)
         await delete_theme(db,topic_id)
         await add_warning(user_name,source,user_id)
         await bot.reply_to(call.message,'Тема удалена, +1 предупреждение')
     elif but == 'ban':
-        await block_user(user_id,user_name)
+        await block_user(user_id)
         await bot.reply_to(call.message,'Пользователь заблокирован. Ебать он лох')
 
 @bot.message_handler(commands='off')

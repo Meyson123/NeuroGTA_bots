@@ -22,11 +22,11 @@ async def new_user(username, source, id):
     }
     collection.insert_one(shema)
 
-async def block_user(id,username):
+async def block_user(id):
     collection.delete_one({'id': id})
     BlackList = db['BlackList']
     BlackList.insert_one({'id': id})
-    print(f'Пользователь {username} был заблокирован')
+    print(f'Пользователь {id} был заблокирован')
 
 # Увелечение счета пользователя (на 1)
 async def add_count(username, source, id):
