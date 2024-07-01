@@ -47,7 +47,7 @@ async def topic(message):
     topic = message.text[7:]
     requestor_name = message.from_user.first_name
     requestor_id = message.from_user.id
-    warnings = await warnings_by_user(requestor_id)
+    warnings = await warnings_by_user(requestor_name, source, requestor_id)
     if mode == 'off':
         await bot.send_message(message.chat.id,'Сожалеем,но прием тем на этом стриме уже завершен, ждем ваши темы на следующем.\n -с любовью,Meyson')
         await bot.send_sticker(message.chat.id,'CAACAgIAAxkBAAEMZ-JmgY_WuGvpBWdSmJ99nMQgy7qMqQACBxkAAs0xEEghvxdEJ73qJDUE')
@@ -64,7 +64,7 @@ async def topic(message):
         await add_warning(requestor_name,source,requestor_id)
         last_topic_time[requestor_id] = time.time()
         await bot.send_message(message.chat.id, 'Ай-ай-ай,у нас тут так не принято. Не нужно кидать запрещенные темы\n/ban_themes - Запрещенные темы')
-        await bot.send_message(message.chat.id,f'На данный момент у вас {warnings} предупреждений.')
+        await bot.send_message(message.chat.id,f'На данный момент у вас {warnings+1} предупреждений.')
         markup = InlineKeyboardMarkup()
         markup.add(InlineKeyboardButton('🖕 Заблокировать', callback_data= f"ban|&|{requestor_id}"))
         await bot.send_message(-1002175092872, f'''
@@ -74,7 +74,7 @@ async def topic(message):
 Ник автора: {requestor_name}
 Айди пользователя: {requestor_id}
 Источник: {source}
-Количество предупреждений: {warnings}''',reply_markup=markup)
+Количество предупреждений: {warnings+1}''',reply_markup=markup)
         return
     check_result = await check_topic_exists(db, topic, threshold)
     if check_result[0]:

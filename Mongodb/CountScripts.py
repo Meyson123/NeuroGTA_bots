@@ -13,6 +13,7 @@ collection = db['Counter_topics_by_user']
 
 # Создание нового пользователя
 async def new_user(username, source, id):
+    id = str(id)
     shema = {
         'username': username,
         'source': source,
@@ -23,6 +24,7 @@ async def new_user(username, source, id):
     collection.insert_one(shema)
 
 async def block_user(id):
+    id = str(id)
     collection.delete_one({'id': id})
     BlackList = db['BlackList']
     BlackList.insert_one({'id': id})
@@ -30,6 +32,7 @@ async def block_user(id):
 
 # Увелечение счета пользователя (на 1)
 async def add_count(username, source, id):
+    id = str(id)
     result = collection.update_one({'id': id}, {'$inc': {'count': 1}})
 
     if result.matched_count:
@@ -40,6 +43,7 @@ async def add_count(username, source, id):
 
 
 async def add_warning(username,source,id):
+    id = str(id)
     result = collection.update_one({'id': id}, {'$inc': {'warnings': 1}})
     if result.matched_count:
         pass
@@ -48,6 +52,7 @@ async def add_warning(username,source,id):
         await add_warning(username,source,id)
 
 async def warnings_by_user(username,source,id):
+    id = str(id)
     try:
         return collection.find_one({'id': id})['warnings']
     except TypeError:
@@ -56,6 +61,7 @@ async def warnings_by_user(username,source,id):
 
 
 async def search_nick(username,name_of_col,source,id):
+    id = str(id)
     if name_of_col == 'BlackList':
         col = db[name_of_col]
         user = col.find_one({'id': id})

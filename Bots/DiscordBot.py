@@ -87,8 +87,8 @@ async def on_message(message):
                 await add_warning(requestor_name,source,requestor_id)
                 last_topic_time[requestor_id] = time.time()
                 await message.reply( 'Ай-ай-ай,у нас тут так не принято. Не нужно кидать запрещенные темы\nО запрещенных темах можно узнать в https://discord.com/channels/1154075045149286470/1257244428947558460/1257269091035517000')
-                await message.reply(f'На данный момент у вас {warnings} предупреждений.')
-                await send_filter_error(topic,requestor_name,requestor_id,source,warnings)
+                await message.reply(f'На данный момент у вас {warnings+1} предупреждений.')
+                await send_filter_error(topic,requestor_name,requestor_id,source,warnings+1)
                 return
             if check_result[0]:
                 procent, orig = check_result[1],check_result[2]
