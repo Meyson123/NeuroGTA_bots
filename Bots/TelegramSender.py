@@ -19,6 +19,8 @@ async def sending_to_tg(payload):
             print(f'Ошибка отправки в телеграм: {response.status_code}')
     except requests.exceptions.RequestException as e:
         print(f'Ошибка отправки в телеграм: {e}')
+
+
 async def send_topic_to_telegram(topic, style, requestor_name, requestor_id, source, priority, topic_id):
     message = f'''
 Тема: {topic}
@@ -40,6 +42,7 @@ async def send_topic_to_telegram(topic, style, requestor_name, requestor_id, sou
         'reply_markup': json.dumps(reply_markup)
     }
     await sending_to_tg(payload)
+
 
 async def send_similar_error(topic,requestor_name,requestor_id,source,orig,procent):
     message = f'''
@@ -63,6 +66,7 @@ async def send_similar_error(topic,requestor_name,requestor_id,source,orig,proce
     }
     await sending_to_tg(payload)
 
+
 async def send_filter_error(topic,requestor_name,requestor_id,source,warnings):
     message =  f'''
 Тема заблокирована
@@ -81,5 +85,19 @@ async def send_filter_error(topic,requestor_name,requestor_id,source,warnings):
     'chat_id': TELEGRAM_CHAT_ID,
     'text': message,
     'reply_markup': json.dumps(reply_markup)
+    }
+    await sending_to_tg(payload)
+
+
+async def send_donated(info):
+    message =  f'''
+🤑🤑🤑ДОНАТ🤑🤑🤑
+{info}
+
+Информация ниже'''
+
+    payload = {
+    'chat_id': TELEGRAM_CHAT_ID,
+    'text': message,
     }
     await sending_to_tg(payload)
