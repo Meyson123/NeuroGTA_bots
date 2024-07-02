@@ -15,15 +15,16 @@ default_topic_suggest_message = 'Отлично! Записал тему в кн
 default_style = 'Комедийный, поучительный'
 
 
-mongodb_address = 'mongodb://localhost:27017'
+mongodb_address = 'mongodb+srv://chubemba:klMBAQo6ZgfcEWqY@aistreams.5lhluvc.mongodb.net/'
 
 # Параметры
+CanAddTopic = True
+CanAddMashup = True
+threshold = 80
+
 TopicDelay = 60
 TopicDelayTg = 60
 MashupDelay = 240
-
-CanAddTopic = True
-CanAddMashup = True
 
 NeedTopicDelay = False
 NeedMashupDelay = True

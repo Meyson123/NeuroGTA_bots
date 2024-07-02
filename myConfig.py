@@ -1,11 +1,12 @@
-
 # AI GTA:
+
 Project = 'Gta'
 
-valid_speakers = ["CJ", "SMOKE"]
+valid_speakers = ["CJ", "SMOKE", "RYDER"]
 replacements = [
     ("CJ", "CJ"),
     ("SMOKE", "SMOKE"),
+    ("RYDER", "RYDER"),
 ]
 default_topic_suggest_message = 'Окей, бро! Добавил тему в список'
 default_style = ''
@@ -14,14 +15,15 @@ default_style = ''
 mongodb_address = 'mongodb+srv://chubemba:klMBAQo6ZgfcEWqY@aistreams.5lhluvc.mongodb.net/'
 
 # Параметры
-TopicDelay = 300
-TopicDelayTg = 300
-MashupDelay = 60
-threshold = 80
 CanAddTopic = True
 CanAddMashup = False
+threshold = 80
 
-NeedTopicDelay = False
+TopicDelay = 300
+TopicDelayTg = 600
+MashupDelay = 60
+
+NeedTopicDelay = True
 NeedMashupDelay = True
 NeedMashupDelayPerUser = False
 
