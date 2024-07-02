@@ -1,3 +1,5 @@
 /.env
 /myConfig.py
 *.pyc
+Bots/QueueDisplayData.txt
+Bots/DonationData.txt

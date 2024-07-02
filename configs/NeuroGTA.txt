@@ -37,8 +37,8 @@ AdminNames = ['pryanik26', 'meyson420']
 AdminTgIds = [1484475666, 709479935, -1002175092872]
 
 #Queue config
-QueueGeneratedText = "Темы готовы:"
-QueueSuggestedText = "Темы в очереди:"
+QueueGeneratedText = "готово:"
+QueueSuggestedText = "очередь:"
 
 #Donat config
 DonatedTopicSumRub = 25
