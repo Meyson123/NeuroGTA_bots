@@ -65,9 +65,11 @@ async def add_mashup(db, requestor_name,requestor_id, source, priority, speaker,
 
 
 async def filter(topic):
+    topic_words = topic.split()
     for word in ban_words:
-        if word.lower() in topic.lower():
-            return True
+        for topic_word in topic_words:
+            if word.lower() == topic_word.lower():
+                return True
     return False
 
 async def check_topic_exists(db, topic, threshold):
@@ -105,30 +107,36 @@ def connect_to_mongodb():
             print(e)
             time.sleep(1)
 
-async def search_number(topic_id,db):
+async def search_number(topic_id, db):
     suggested = db["suggested_topics"]
     generated = db["generated_topics"]
-    document = suggested.find_one({"_id": ObjectId(topic_id)})
+
+    document = generated.find_one({"_id": ObjectId(topic_id)})
+
     if document:
-        # Получаем порядковый номер документа в коллекции
-        document_number = suggested.count_documents({'_id': {'$lt': document['_id']}}) + 1
-        return document_number + generated.count_documents({})
+        # Получаем порядковый номер документа в коллекции generated_topics
+        document_number = generated.count_documents({'_id': {'$lt': document['_id']}}) + 1
+        return document_number
     else:
-        document = generated.find_one({"_id": ObjectId(topic_id)})
+        document = suggested.find_one({"_id": ObjectId(topic_id)})
+
         if document:
-            document_number = generated.count_documents({'_id': {'$lt': document['_id']}}) + 1
-            return document_number
+            # Получаем порядковый номер документа в коллекции suggested_topics
+            document_number = suggested.count_documents({'_id': {'$lt': document['_id']}}) + 1
+            return document_number + generated.count_documents({})
+
     return None
+
         
 
-async def get_topic_by_user(username,db):
+async def get_topic_by_user(id, db):
     suggested = db["suggested_topics"]
     generated = db["generated_topics"]
     all_topics = []
-    for sug_topic in list(suggested.find({'requestor_id':username})):
-        all_topics.append(sug_topic)
-    for gen_topic in list(generated.find({'requestor_id':username})):
+    for gen_topic in list(generated.find({'requestor_id':id})):
         all_topics.append(gen_topic)
+    for sug_topic in list(suggested.find({'requestor_id':id})):
+        all_topics.append(sug_topic)
     return all_topics
 
 async def get_requestor_name_by_topic_id(topic_id, db):

@@ -54,7 +54,8 @@ async def add_warning(username,source,id):
 async def warnings_by_user(username,source,id):
     id = str(id)
     try:
-        return collection.find_one({'id': id})['warnings']
+        warnings = collection.find_one({'id': id})['warnings']
+        return warnings
     except TypeError:
         await new_user(username,source,id)
         await warnings_by_user(username,source,id)

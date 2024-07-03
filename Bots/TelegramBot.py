@@ -49,7 +49,7 @@ async def topic(message):
     requestor_id = message.from_user.id
     warnings = await warnings_by_user(requestor_name, source, requestor_id)
     if mode == 'off':
-        await bot.send_message(message.chat.id,'Сожалеем,но прием тем на этом стриме уже завершен, ждем ваши темы на следующем.\n -с любовью,Meyson')
+        await bot.send_message(message.chat.id,'Сожалеем,но прием тем на этом стриме уже завершен, ждем ваши темы на следующем.\n    - с любовью,Meyson')
         await bot.send_sticker(message.chat.id,'CAACAgIAAxkBAAEMZ-JmgY_WuGvpBWdSmJ99nMQgy7qMqQACBxkAAs0xEEghvxdEJ73qJDUE')
         return
     if warnings == 5:
@@ -63,6 +63,8 @@ async def topic(message):
     if await filter(topic):
         await add_warning(requestor_name,source,requestor_id)
         last_topic_time[requestor_id] = time.time()
+        if warnings is None:
+            warnings = 0
         await bot.send_message(message.chat.id, 'Ай-ай-ай,у нас тут так не принято. Не нужно кидать запрещенные темы\n/ban_themes - Запрещенные темы')
         await bot.send_message(message.chat.id,f'На данный момент у вас {warnings+1} предупреждений.')
         markup = InlineKeyboardMarkup()
@@ -107,6 +109,7 @@ async def topic(message):
     topic_id = await add_topic(db, requestor_name,requestor_id, source, TopicPriority, topic, style_content)
     markup = InlineKeyboardMarkup()
     markup.add(InlineKeyboardButton('🗑 Удалить тему', callback_data=f"del|&|{requestor_id}|&|{topic_id}"))
+    markup.add(InlineKeyboardButton('🗑 Удалить тему + Предупреждение', callback_data=f"delpred|&|{requestor_id}|&|{topic_id}"))
     markup.add(InlineKeyboardButton('🖕 Заблокировать', callback_data= f"ban|&|{requestor_id}|&|{topic_id}"))
     await bot.send_message(-1002175092872, f'''
 Тема: {topic}
@@ -138,7 +141,8 @@ async def queue(message):
         topic = topics['topic']
         spisok = spisok + f'{k}) {topic} - {number} место в очереди\n'
         k += 1
-    await bot.send_message(message.chat.id,f'{spisok}\nP.S. Если до твоей темы далеко - за 25₽ можно заказать тему без очереди!\nhttps://www.donationalerts.com/r/neuro_gta')
+    # await bot.send_message(message.chat.id,f'{spisok}\nP.S. Если до твоей темы далеко - за 25₽ можно заказать тему без очереди!\nhttps://www.donationalerts.com/r/neuro_gta')
+    await bot.send_message(message.chat.id,spisok)
 
 @bot.callback_query_handler(func=lambda call: True)
 async def del_theme(call):
@@ -150,11 +154,14 @@ async def del_theme(call):
         user_name = await get_requestor_name_by_topic_id(topic_id, db)
         await delete_theme(db,topic_id)
         await add_warning(user_name,source,user_id)
+        await bot.reply_to(call.message,'Тема удалена')
+    elif but == 'delpred':
+        topic_id = calldata[2]
         await bot.reply_to(call.message,'Тема удалена, +1 предупреждение')
+        await delete_theme(db,topic_id)
     elif but == 'ban':
         await block_user(user_id)
         await bot.reply_to(call.message,'Пользователь заблокирован. Ебать он лох')
-
 @bot.message_handler(commands='off')
 async def off(message):
     if not(message.chat.id in AdminTgIds):
@@ -168,7 +175,7 @@ async def send_text(message):
         if mode == 'on':
            await bot.send_message(message.chat.id, "Бро, задай тему с помощью команды /topic, или посмотри подробности с помощью /help")
         else: 
-            await bot.send_message(message.chat.id,'Сожалеем,но прием тем на этом стриме уже завершен, ждем ваши темы на следующем.\n    - с любовью,Meyson')
+            await bot.send_message(message.chat.id,'Сожалеем,но прием тем на этом стриме уже завершен, ждем ваши темы на следующем.\n    - с любовью,Meyson\n Ps. Тему можно подать за донат размеров за 25₽ без очереди\nhttps://www.donationalerts.com/r/neuro_gta')
             await bot.send_sticker(message.chat.id,'CAACAgIAAxkBAAEMZ-JmgY_WuGvpBWdSmJ99nMQgy7qMqQACBxkAAs0xEEghvxdEJ73qJDUE')
 
 
