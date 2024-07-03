@@ -1,7 +1,7 @@
 from pymongo import MongoClient
 import pymongo
 import time
-from myConfig import mongodb_address
+from myConfig import mongodb_address, default_style
 import re
 from fuzzywuzzy import fuzz
 from bson import ObjectId
@@ -71,6 +71,16 @@ async def filter(topic):
             if word.lower() == topic_word.lower():
                 return True
     return False
+
+async def check_topic_style(topic):
+    pattern = r'! ?стиль (.+)'
+    match = re.search(pattern, topic, re.IGNORECASE)
+    if match:
+        style_content = match.group(1)
+        topic = re.sub(pattern, '', topic, flags=re.IGNORECASE).strip()
+    else:
+        style_content = default_style
+    return topic, style_content
 
 async def check_topic_exists(db, topic, threshold):
     collection = db['suggested_topics']

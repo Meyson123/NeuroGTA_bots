@@ -21,7 +21,7 @@ async def sending_to_tg(payload):
         print(f'Ошибка отправки в телеграм: {e}')
 
 
-async def send_topic_to_telegram(topic, style, requestor_name, requestor_id, source, priority, topic_id):
+async def send_topic_to_telegram(topic, style, requestor_name, requestor_id, source, priority, topic_id, can_ban_user):
     message = f'''
 Тема: {topic}
 Стиль: {style}
@@ -30,10 +30,16 @@ async def send_topic_to_telegram(topic, style, requestor_name, requestor_id, sou
 Источник: {source}
 Приоритет: {priority}'''
 
-    inline_keyboard = [
-        [{"text": "🗑 Удалить тему", "callback_data": f"del|&|{requestor_id}|&|{topic_id}"}],
-        [{"text": "🖕 Заблокировать", "callback_data": f"ban|&|{requestor_id}|&|{topic_id}"}]
-    ]
+    if can_ban_user:
+        inline_keyboard = [
+            [{"text": "🗑 Удалить тему", "callback_data": f"del|&|{requestor_id}|&|{topic_id}"}],
+            [{"text": "🗑 Удалить тему + Предупреждение", "callback_data": f"delpred|&|{requestor_id}|&|{topic_id}"}],
+            [{"text": "🖕 Заблокировать", "callback_data": f"ban|&|{requestor_id}|&|{topic_id}"}]
+        ]
+    else:
+        inline_keyboard = [
+            [{"text": "🗑 Удалить тему", "callback_data": f"del|&|{requestor_id}|&|{topic_id}"}],
+        ]
     reply_markup = {"inline_keyboard": inline_keyboard}
 
     payload = {
@@ -67,7 +73,7 @@ async def send_similar_error(topic,requestor_name,requestor_id,source,orig,proce
     await sending_to_tg(payload)
 
 
-async def send_filter_error(topic,requestor_name,requestor_id,source,warnings):
+async def send_filter_error(topic,requestor_name,requestor_id,source,warnings, can_ban_user):
     message =  f'''
 Тема заблокирована
 
@@ -81,11 +87,17 @@ async def send_filter_error(topic,requestor_name,requestor_id,source,warnings):
     ]
     reply_markup = {"inline_keyboard": inline_keyboard}
 
-    payload = {
-    'chat_id': TELEGRAM_CHAT_ID,
-    'text': message,
-    'reply_markup': json.dumps(reply_markup)
-    }
+    if can_ban_user:
+        payload = {
+        'chat_id': TELEGRAM_CHAT_ID,
+        'text': message,
+        'reply_markup': json.dumps(reply_markup)
+        }
+    else:
+        payload = {
+        'chat_id': TELEGRAM_CHAT_ID,
+        'text': message,
+        }
     await sending_to_tg(payload)
 
 

@@ -6,10 +6,10 @@ import asyncio
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 from myConfig import Project, valid_speakers, replacements, DonatEnableInteractionOne, DonatEnableInteractionTwo, \
     DonatEnableTopics, DonatEnableMashups, DonatedInteractionOneSumRub, DonatedInteractionTwoSumRub, \
-    DonatedMashupSumRub, DonatedTopicSumRub, default_style, threshold
+    DonatedMashupSumRub, DonatedTopicSumRub
 from dotenv import load_dotenv
-from Mongodb.BotsScripts import add_topic, add_mashup, connect_to_mongodb, replace_name, filter, check_topic_exists
-from TelegramSender import send_donated, send_filter_error, send_similar_error, send_topic_to_telegram
+from Mongodb.BotsScripts import add_topic, add_mashup, connect_to_mongodb, replace_name, filter,check_topic_style
+from TelegramSender import send_donated, send_filter_error, send_topic_to_telegram
 
 load_dotenv()
 db = connect_to_mongodb()
@@ -66,7 +66,7 @@ def on_message(data):
             FinalAmount = int(amountSplit[0])
 
         if currency == 'RUB':
-            if FinalAmount == DonatedMashupSumRub and DonatEnableMashups:
+            if FinalAmount >= DonatedMashupSumRub and DonatEnableMashups:
                 print('Мэшап задоначен')
 
                 if not message.startswith('!мэшап'):
@@ -86,29 +86,18 @@ def on_message(data):
                 else:
                     print("ОШИБКА! НЕОБХОДИМО РУЧНОЕ ДОБАВЛЕНИЕ")
 
-            elif FinalAmount == DonatedTopicSumRub and DonatEnableTopics:
+            elif FinalAmount >= DonatedTopicSumRub and DonatEnableTopics:
                 print('Тема задоначена')
                 requestor_name = f'Донатер {user}'
 
-                check_result = asyncio.run(check_topic_exists(db, message, threshold))
-
                 if asyncio.run(filter(message)):
-                    asyncio.run(send_filter_error(message, requestor_name, requestor_id, source, 0))
+                    asyncio.run(send_filter_error(message, requestor_name, requestor_id, source, 0, False))
                     return
-
-                if check_result[0]:
-                    procent, orig = check_result[1], check_result[2]
-                    asyncio.run(send_similar_error(message, requestor_name, requestor_id, source, orig, procent))
-                    return
-
-                if "!стиль" in message:
-                    style_content = message.split("!стиль ", 1)[1]
-                    message = message.split("!стиль ", 1)[0].strip()
-                else:
-                    style_content = default_style
+                
+                message, style_content = asyncio.run(check_topic_style(message))
 
                 topic_id = asyncio.run(add_topic(db, requestor_name, requestor_id, "Donat", 2, message, style_content))
-                asyncio.run(send_topic_to_telegram(message, style_content, requestor_name, requestor_id, source, 2, str(topic_id)))
+                asyncio.run(send_topic_to_telegram(message, style_content, requestor_name, requestor_id, source, 2, str(topic_id), False))
 
             elif FinalAmount == DonatedInteractionOneSumRub and DonatEnableInteractionOne:
                 print('Цветок задоначен')

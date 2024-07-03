@@ -7,10 +7,10 @@ sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 from dotenv import load_dotenv
 from myConfig import TopicDelay, MashupDelay, CanAddTopic, CanAddMashup, NeedTopicDelay, \
     NeedMashupDelay, NeedMashupDelayPerUser, TopicsChatName, MashupsChatName, AdminNames, valid_speakers, TopicPriority, \
-    MashapPriority, replacements, default_topic_suggest_message, default_style, Project,threshold
+    MashapPriority, replacements, default_topic_suggest_message,Project,threshold
 from Mongodb.CountScripts import add_count, sort_counter,add_warning,block_user,search_nick,warnings_by_user
-from Mongodb.BotsScripts import add_topic,connect_to_mongodb,filter,delete_theme,search_number,\
-    get_topic_by_user,check_topic_exists, get_requestor_name_by_topic_id,add_mashup,replace_name
+from Mongodb.BotsScripts import add_topic,connect_to_mongodb,filter,search_number,\
+    check_topic_exists,add_mashup,replace_name,check_topic_style
 from TelegramSender import send_topic_to_telegram,send_similar_error,send_filter_error
 load_dotenv()
 
@@ -74,7 +74,6 @@ async def on_message(message):
             requestor_name = message.author.name
             requestor_id = message.author.id
             warnings = await warnings_by_user(requestor_name,source,requestor_id)
-            check_result = await check_topic_exists(db, topic, threshold)
             if mode == 'off':
                 await message.reply('Сожалеем,но прием тем на этом стриме уже завершен, ждем ваши темы на следующем.\n                                                        с любовью,Meyson')
                 return
@@ -90,22 +89,21 @@ async def on_message(message):
                     warnings = 0
                 await message.reply( 'Ай-ай-ай,у нас тут так не принято. Не нужно кидать запрещенные темы\nО запрещенных темах можно узнать в https://discord.com/channels/1154075045149286470/1257244428947558460/1257269091035517000')
                 await message.reply(f'На данный момент у вас {warnings+1} предупреждений.')
-                await send_filter_error(topic,requestor_name,requestor_id,source,warnings+1)
+                await send_filter_error(topic,requestor_name,requestor_id,source,warnings+1, True)
                 return
+            topic, style_content = await check_topic_style(topic)
+            check_result = await check_topic_exists(db, topic, threshold)
             if check_result[0]:
                 procent, orig = check_result[1],check_result[2]
                 await message.reply('Тема не добавлена!\nТакая тема(или подобная ей) уже есть в очереди.\nПридумайте что-нибудь другое')
                 await send_similar_error(topic,requestor_name,requestor_id,source,orig,procent)
                 return
-            if "!стиль" in topic:
-                style_content = topic.split("!стиль ", 1)[1]
-                topic = topic.split("!стиль ", 1)[0].strip()
-            else:
-                style_content = default_style
+            
+            
             # topic_content = message.content[6:]  # Извлекаем содержимое темы из сообщения
 
             topic_id = await add_topic(db, requestor_name, requestor_id, source, TopicPriority, topic, style_content)  # Добавляем тему в БД
-            await send_topic_to_telegram(topic, style_content, requestor_name, requestor_id, source, TopicPriority, str(topic_id))
+            await send_topic_to_telegram(topic, style_content, requestor_name, requestor_id, source, TopicPriority, str(topic_id), True)
             await add_count(message.author.name, source, requestor_id)
             await sort_counter()
             await message.reply(default_topic_suggest_message + f'\nТвоя позиция в очереди: {await search_number(topic_id,db)}', mention_author=False)

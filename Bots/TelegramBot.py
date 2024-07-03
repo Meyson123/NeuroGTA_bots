@@ -6,11 +6,11 @@ sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 from dotenv import load_dotenv
 from telebot.async_telebot import AsyncTeleBot, types
 from telebot.types import InlineKeyboardMarkup,InlineKeyboardButton
-from myConfig import AdminTgIds, NeedTopicDelay, TopicDelayTg, TopicPriority, \
-    default_topic_suggest_message, default_style,threshold
+from myConfig import AdminTgIds, ChanelToSubscribeID, NeedTopicDelay, TopicDelayTg, TopicPriority, \
+    default_topic_suggest_message,threshold
 from Mongodb.CountScripts import warnings_by_user,add_count, sort_counter,add_warning,block_user,search_nick
 from Mongodb.BotsScripts import add_topic,connect_to_mongodb,filter,delete_theme,search_number,\
-    get_topic_by_user,check_topic_exists, get_requestor_name_by_topic_id
+    get_topic_by_user,check_topic_exists, get_requestor_name_by_topic_id, check_topic_style
 
 
 load_dotenv()
@@ -44,6 +44,16 @@ async def help_message(message):
 # Передача тем от бота
 @bot.message_handler(commands=['topic'])
 async def topic(message):
+    try:
+        chat_member = await bot.get_chat_member(ChanelToSubscribeID, message.from_user.id)
+        if chat_member.status not in ['member', 'administrator', 'creator']:
+            await bot.send_message(message.chat.id, "Пожалуйста, подпишитесь на наш канал, чтобы задавать темы\n"
+                                                    f"https://t.me/{ChanelToSubscribeID[1:]}")
+            return
+    except Exception as e:
+        await bot.send_message(message.chat.id, f"Произошла ошибка: {e}")
+
+
     topic = message.text[7:]
     requestor_name = message.from_user.first_name
     requestor_id = message.from_user.id
@@ -78,6 +88,9 @@ async def topic(message):
 Источник: {source}
 Количество предупреждений: {warnings+1}''',reply_markup=markup)
         return
+    
+    topic, style_content = await check_topic_style(topic)
+
     check_result = await check_topic_exists(db, topic, threshold)
     if check_result[0]:
          procent, orig = check_result[1],check_result[2]
@@ -101,11 +114,8 @@ async def topic(message):
                 await bot.reply_to(message,
                                    f"Ты можешь добавить тему не чаще, чем раз в {int(TopicDelayTg / 60)} {minuta}.")
                 return
-    if "!стиль" in topic:
-        style_content = topic.split("!стиль ", 1)[1]
-        topic = topic.split("!стиль ", 1)[0].strip()
-    else:
-        style_content = default_style
+            
+    
     topic_id = await add_topic(db, requestor_name,requestor_id, source, TopicPriority, topic, style_content)
     markup = InlineKeyboardMarkup()
     markup.add(InlineKeyboardButton('🗑 Удалить тему', callback_data=f"del|&|{requestor_id}|&|{topic_id}"))
@@ -153,12 +163,12 @@ async def del_theme(call):
         topic_id = calldata[2]
         user_name = await get_requestor_name_by_topic_id(topic_id, db)
         await delete_theme(db,topic_id)
-        await add_warning(user_name,source,user_id)
         await bot.reply_to(call.message,'Тема удалена')
     elif but == 'delpred':
         topic_id = calldata[2]
-        await bot.reply_to(call.message,'Тема удалена, +1 предупреждение')
         await delete_theme(db,topic_id)
+        await add_warning(user_name,source,user_id)
+        await bot.reply_to(call.message,'Тема удалена, +1 предупреждение')
     elif but == 'ban':
         await block_user(user_id)
         await bot.reply_to(call.message,'Пользователь заблокирован. Ебать он лох')
