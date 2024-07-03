@@ -48,6 +48,7 @@ async def on_message(message):
 
     if message.author == bot.user:
         return
+
     topic = message.content[6:]
     message.content = message.content.lower()
     channel_name = message.channel.name
@@ -58,7 +59,9 @@ async def on_message(message):
             return
         if not CanAddTopic:
             return
-
+        if mode == 'off':
+            await message.reply('Сожалеем,но прием тем на этом стриме уже завершен, ждем ваши темы на следующем.\n- C любовью,Meyson')
+            return
         try:
             if not (message.author.name in AdminNames):
                 if NeedTopicDelay:
@@ -74,9 +77,7 @@ async def on_message(message):
             requestor_name = message.author.name
             requestor_id = message.author.id
             warnings = await warnings_by_user(requestor_name,source,requestor_id)
-            if mode == 'off':
-                await message.reply('Сожалеем,но прием тем на этом стриме уже завершен, ждем ваши темы на следующем.\n                                                        с любовью,Meyson')
-                return
+
             if warnings == 5:
                 await block_user(requestor_id)
             if await search_nick(requestor_name,'BlackList',source,requestor_id):

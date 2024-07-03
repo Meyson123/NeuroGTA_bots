@@ -10,7 +10,8 @@ from myConfig import AdminTgIds, ChanelToSubscribeID, NeedTopicDelay, TopicDelay
     default_topic_suggest_message,threshold
 from Mongodb.CountScripts import warnings_by_user,add_count, sort_counter,add_warning,block_user,search_nick
 from Mongodb.BotsScripts import add_topic,connect_to_mongodb,filter,delete_theme,search_number,\
-    get_topic_by_user,check_topic_exists, get_requestor_name_by_topic_id, check_topic_style, get_members_id
+    get_topic_by_user,check_topic_exists, get_requestor_name_by_topic_id, check_topic_style, get_members_id,\
+    up_theme
 
 
 load_dotenv()
@@ -44,7 +45,7 @@ async def spam(message):
     except Exception as e:
         await bot.send_message(message.chat.id, f"Произошла ошибка при рассылке: {e}")
 
-    
+
 
 
 @bot.message_handler(commands=['start'])
@@ -86,7 +87,7 @@ async def topic(message):
     requestor_id = message.from_user.id
     warnings = await warnings_by_user(requestor_name, source, requestor_id)
     if mode == 'off':
-        await bot.send_message(message.chat.id,'Сожалеем,но прием тем на этом стриме уже завершен, ждем ваши темы на следующем.\n    - с любовью,Meyson')
+        await bot.send_message(message.chat.id,'Сожалеем,но прием тем на этом стриме уже завершен, ждем ваши темы на следующем.\n    - с любовью,Meyson\n\nPs. Темы все еще можно задавать за донат(без очереди) https://www.donationalerts.com/r/neuro_gta')
         await bot.send_sticker(message.chat.id,'CAACAgIAAxkBAAEMZ-JmgY_WuGvpBWdSmJ99nMQgy7qMqQACBxkAAs0xEEghvxdEJ73qJDUE')
         return
     if warnings == 5:
@@ -115,7 +116,7 @@ async def topic(message):
 Источник: {source}
 Количество предупреждений: {warnings+1}''',reply_markup=markup)
         return
-    
+
     topic, style_content = await check_topic_style(topic)
 
     check_result = await check_topic_exists(db, topic, threshold)
@@ -141,13 +142,14 @@ async def topic(message):
                 await bot.reply_to(message,
                                    f"Ты можешь добавить тему не чаще, чем раз в {int(TopicDelayTg / 60)} {minuta}.")
                 return
-            
-    
+
+
     topic_id = await add_topic(db, requestor_name,requestor_id, source, TopicPriority, topic, style_content)
     markup = InlineKeyboardMarkup()
     markup.add(InlineKeyboardButton('🗑 Удалить тему', callback_data=f"del|&|{requestor_id}|&|{topic_id}"))
     markup.add(InlineKeyboardButton('🗑 Удалить тему + Предупреждение', callback_data=f"delpred|&|{requestor_id}|&|{topic_id}"))
     markup.add(InlineKeyboardButton('🖕 Заблокировать', callback_data= f"ban|&|{requestor_id}|&|{topic_id}"))
+    markup.add(InlineKeyboardButton('⬆️ Повысить приоритет',callback_data= f'up|&|{requestor_id}|&|{topic_id}'))
     await bot.send_message(-1002175092872, f'''
 Тема: {topic}
 Стиль: {style_content}
@@ -194,11 +196,16 @@ async def del_theme(call):
     elif but == 'delpred':
         topic_id = calldata[2]
         await delete_theme(db,topic_id)
-        await add_warning(user_name,source,user_id)
+        await add_warning(user_id,source,user_id)
         await bot.reply_to(call.message,'Тема удалена, +1 предупреждение')
     elif but == 'ban':
         await block_user(user_id)
         await bot.reply_to(call.message,'Пользователь заблокирован. Ебать он лох')
+    elif but == 'up':
+        topic_id = calldata[2]
+        await up_theme(db,topic_id)
+        await bot.reply_to(call.message,'Приоритет темы повышен.')
+
 @bot.message_handler(commands='off')
 async def off(message):
     if not(message.chat.id in AdminTgIds):
@@ -211,8 +218,8 @@ async def send_text(message):
     if not(message.chat.id in AdminTgIds):
         if mode == 'on':
            await bot.send_message(message.chat.id, "Бро, задай тему с помощью команды /topic, или посмотри подробности с помощью /help")
-        else: 
-            await bot.send_message(message.chat.id,'Сожалеем,но прием тем на этом стриме уже завершен, ждем ваши темы на следующем.\n    - с любовью,Meyson\n Ps. Тему можно подать за донат размеров за 25₽ без очереди\nhttps://www.donationalerts.com/r/neuro_gta')
+        else:
+            await bot.send_message(message.chat.id,'Сожалеем,но прием тем на этом стриме уже завершен, ждем ваши темы на следующем.\n    - с любовью,Meyson\n\nPs. Темы все еще можно задавать за донат(без очереди) https://www.donationalerts.com/r/neuro_gta')
             await bot.send_sticker(message.chat.id,'CAACAgIAAxkBAAEMZ-JmgY_WuGvpBWdSmJ99nMQgy7qMqQACBxkAAs0xEEghvxdEJ73qJDUE')
 
 

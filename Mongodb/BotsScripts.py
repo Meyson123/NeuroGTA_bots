@@ -106,6 +106,10 @@ async def delete_theme(db, topic_id):
     else:
         print(f"Тема '{topic}' не найдена в suggested_topics.")
 
+
+async def up_theme(db, topic_id):
+    collection = db['suggested_topics']
+    document = collection.update_one({'_id': ObjectId(topic_id)}, {'$inc': {'priority': 1}})
 def connect_to_mongodb():
     while True:
         try:
