@@ -51,8 +51,11 @@ async def spam(message):
 async def start(message):
     await bot.send_message(message.chat.id, 'Wassup, nigga🖐️\n'
                                             'Здесь ты можешь предложить тему на стрим Нейро GTA.\n'
-                                            '/topic - задать тему\n'
-                                            '/help - для подробной информации')
+                                            '/topic - Задать тему\n\n'
+                                            '/help - Для подробной информации\n'
+                                            '/ban_themes - Правила и запрещенные темы\n'
+                                            '/queue - Посмотреть свою очередь\n\n'
+                                            'за 25₽ можно заказать тему без очереди!\nhttps://www.donationalerts.com/r/neuro_gta')
 
 
 # Сообщение с информацией
@@ -175,8 +178,8 @@ async def queue(message):
         topic = topics['topic']
         spisok = spisok + f'{k}) {topic} - {number} место в очереди\n'
         k += 1
-    # await bot.send_message(message.chat.id,f'{spisok}\nP.S. Если до твоей темы далеко - за 25₽ можно заказать тему без очереди!\nhttps://www.donationalerts.com/r/neuro_gta')
-    await bot.send_message(message.chat.id,spisok)
+    await bot.send_message(message.chat.id,f'{spisok}\nP.S. Если до твоей темы далеко - за 25₽ можно заказать тему без очереди!\nhttps://www.donationalerts.com/r/neuro_gta')
+    #await bot.send_message(message.chat.id,spisok)
 
 @bot.callback_query_handler(func=lambda call: True)
 async def del_theme(call):

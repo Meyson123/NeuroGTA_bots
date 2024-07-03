@@ -138,7 +138,7 @@ async def search_number(topic_id, db):
     return None
 
 async def get_members_id(db):
-    collection = db["test"]
+    collection = db["Counter_topics_by_user"]
     all_id = []
     for member in list(collection.find({'source': 'Telegram'})):
         all_id.append(member['id'])
