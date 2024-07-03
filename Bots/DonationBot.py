@@ -31,6 +31,10 @@ def on_connect():
     except Exception as e:
         print(f"Error during connection: {e}")
 
+@sio.on('disconnect')
+def on_disconnect():
+    print("Disconnected from server")
+
 @sio.on('donation')
 def on_message(data):
     try:
