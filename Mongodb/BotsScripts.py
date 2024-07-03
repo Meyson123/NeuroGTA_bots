@@ -137,7 +137,13 @@ async def search_number(topic_id, db):
 
     return None
 
-        
+async def get_members_id(db):
+    collection = db["test"]
+    all_id = []
+    for member in list(collection.find({'source': 'Telegram'})):
+        all_id.append(member['id'])
+    return all_id
+
 
 async def get_topic_by_user(id, db):
     suggested = db["suggested_topics"]

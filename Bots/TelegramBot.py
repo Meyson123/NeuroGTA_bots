@@ -10,7 +10,7 @@ from myConfig import AdminTgIds, ChanelToSubscribeID, NeedTopicDelay, TopicDelay
     default_topic_suggest_message,threshold
 from Mongodb.CountScripts import warnings_by_user,add_count, sort_counter,add_warning,block_user,search_nick
 from Mongodb.BotsScripts import add_topic,connect_to_mongodb,filter,delete_theme,search_number,\
-    get_topic_by_user,check_topic_exists, get_requestor_name_by_topic_id, check_topic_style
+    get_topic_by_user,check_topic_exists, get_requestor_name_by_topic_id, check_topic_style, get_members_id
 
 
 load_dotenv()
@@ -22,6 +22,30 @@ last_topic_time = {}
 # Функция подключения к mongodb
 db = connect_to_mongodb()
 source = 'Telegram'
+
+async def send_message_to_user(user_id, message):
+    try:
+        await bot.send_message(user_id, message)
+        print(f"Сообщение отправлено пользователю с ID {user_id}")
+    except Exception as e:
+        print(f"Ошибка при отправке сообщения пользователю с ID {user_id}: {e}")
+
+
+@bot.message_handler(commands=['spam'])
+async def spam(message):
+    if not(message.chat.id in AdminTgIds):
+        return
+    url = message.text[6:]
+    await bot.send_message(message.chat.id, 'Начинаю рассылку с приглашением на стрим!')
+    try:
+        all_id = await get_members_id(db)
+        for user_id in all_id:
+            await send_message_to_user(user_id, f'Йоу бро, мы начали стрим, залетай!\n{url}')
+    except Exception as e:
+        await bot.send_message(message.chat.id, f"Произошла ошибка при рассылке: {e}")
+
+    
+
 
 @bot.message_handler(commands=['start'])
 async def start(message):
