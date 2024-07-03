@@ -226,4 +226,4 @@ async def send_text(message):
 
 print('Запуск ТГ бота...')
 
-asyncio.run(bot.polling(skip_pending=True))
+asyncio.run(bot.polling(skip_pending=True,non_stop=True))
