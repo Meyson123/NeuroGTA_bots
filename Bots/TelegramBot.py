@@ -41,7 +41,7 @@ async def spam(message):
     try:
         all_id = await get_members_id(db)
         for user_id in all_id:
-            await send_message_to_user(user_id, f'Йоу бро, мы начали стрим, залетай!\n{url}')
+            await send_message_to_user(user_id, url)
     except Exception as e:
         await bot.send_message(message.chat.id, f"Произошла ошибка при рассылке: {e}")
 
