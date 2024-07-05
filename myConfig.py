@@ -9,7 +9,7 @@ replacements = [
     ("RYDER", "RYDER"),
 ]
 default_topic_suggest_message = 'Окей, бро! Добавил тему в список'
-default_style = ''
+default_style = 'Агрессивная беседа гангстеров'
 
 
 mongodb_address = 'mongodb+srv://chubemba:klMBAQo6ZgfcEWqY@aistreams.5lhluvc.mongodb.net/'
@@ -35,7 +35,7 @@ MashupsChatName = "💥заказать-мэшап"
 
 AdminNames = ['pryanik26', 'meyson420']
 AdminTgIds = [1484475666, 709479935, -1002175092872]
-ChanelToSubscribeID = '@gtaneuro'
+ChanelToSubscribeID = '@neurogta'
 
 #Queue config
 QueueGeneratedText = "готово:"

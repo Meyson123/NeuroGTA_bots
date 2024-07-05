@@ -44,11 +44,13 @@ def on_message(data):
         message = donat['message']
         currency = donat['currency']
 
+        if user == None:
+            user = "Аноним"
+
         donation_info = f'''
 {user} задонатил {amount} {currency}
 Сообщение: {message}'''
 
-        print(donation_info)
         asyncio.run(send_donated(donation_info))
         print(f"Received donation: {donation_info}")
 
@@ -80,7 +82,7 @@ def on_message(data):
                     speaker, url = mashup.split(" ", 1)
                     if speaker in valid_speakers:
                         eng_speaker = replace_name(speaker, replacements)
-                        asyncio.run(add_mashup(db, requestor, "Donat", 2, eng_speaker, url))
+                        asyncio.run(add_mashup(db, requestor, source, 2, eng_speaker, url))
                     else:
                         print("ОШИБКА! НЕОБХОДИМО РУЧНОЕ ДОБАВЛЕНИЕ")
                 else:
@@ -96,7 +98,7 @@ def on_message(data):
                 
                 message, style_content = asyncio.run(check_topic_style(message))
 
-                topic_id = asyncio.run(add_topic(db, requestor_name, requestor_id, "Donat", 2, message, style_content))
+                topic_id = asyncio.run(add_topic(db, requestor_name, requestor_id, source, 2, message, style_content))
                 asyncio.run(send_topic_to_telegram(message, style_content, requestor_name, requestor_id, source, 2, str(topic_id), False))
 
             elif FinalAmount == DonatedInteractionOneSumRub and DonatEnableInteractionOne:
