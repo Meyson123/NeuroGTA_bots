@@ -34,7 +34,8 @@ async def send_topic_to_telegram(topic, style, requestor_name, requestor_id, sou
         inline_keyboard = [
             [{"text": "🗑 Удалить тему", "callback_data": f"del|&|{requestor_id}|&|{topic_id}"}],
             [{"text": "🗑 Удалить тему + Предупреждение", "callback_data": f"delpred|&|{requestor_id}|&|{topic_id}"}],
-            [{"text": "🖕 Заблокировать", "callback_data": f"ban|&|{requestor_id}|&|{topic_id}"}]
+            [{"text": "🖕 Заблокировать", "callback_data": f"ban|&|{requestor_id}|&|{topic_id}"}],
+            [{'text': '⬆️ Повысить приоритет',"callback_data": f'up|&|{requestor_id}|&|{topic_id}'}]
         ]
     else:
         inline_keyboard = [
@@ -100,7 +101,31 @@ async def send_filter_error(topic,requestor_name,requestor_id,source,warnings, c
         }
     await sending_to_tg(payload)
 
+async def send_len_error(topic,requestor_name,requestor_id,source, can_ban_user):
+    message = f'''
+Тема заблокирована
 
+Тема: {topic}
+Ник автора: {requestor_name}
+Айди пользователя: {requestor_id}
+Источник: {source}
+Длина темы: {len(topic)}'''
+    inline_keyboard = [
+     [{"text": "🖕 Заблокировать", "callback_data": f"ban|&|{requestor_id}"}]
+    ]
+    reply_markup = {"inline_keyboard": inline_keyboard}
+    if can_ban_user:
+        payload = {
+        'chat_id': TELEGRAM_CHAT_ID,
+        'text': message,
+        'reply_markup': json.dumps(reply_markup)
+        }
+    else:
+        payload = {
+        'chat_id': TELEGRAM_CHAT_ID,
+        'text': message,
+        }
+    await sending_to_tg(payload)
 async def send_donated(info):
     message =  f'''
 🤑🤑🤑ДОНАТ🤑🤑🤑

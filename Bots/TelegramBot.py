@@ -91,7 +91,7 @@ async def topic(message):
         await bot.send_sticker(message.chat.id,'CAACAgIAAxkBAAEMZ-JmgY_WuGvpBWdSmJ99nMQgy7qMqQACBxkAAs0xEEghvxdEJ73qJDUE')
         return
     if warnings == 5:
-        await block_user(requestor_id)
+        await block_user(requestor_name,requestor_id)
     if await search_nick(requestor_name,'BlackList',source,requestor_id):
         await bot.send_message(message.chat.id,'Сожалеем,но вы заблокированы за нарушение правил. Вы можете попробовать вымолить прощение у @Meyson420')
         return
@@ -120,6 +120,19 @@ async def topic(message):
     topic, style_content = await check_topic_style(topic)
 
     check_result = await check_topic_exists(db, topic, threshold)
+    if len(topic) > 256:
+        await bot.send_message(message.chat.id,'Тема слишком большая.\n Тема должна быть не больше 256 символов')
+        markup = InlineKeyboardMarkup()
+        markup.add(InlineKeyboardButton('🖕 Заблокировать', callback_data= f"ban|&|{requestor_id}"))
+        await bot.send_message(-1002175092872, f'''
+Тема заблокирована
+
+Тема: {topic}
+Ник автора: {requestor_name}
+Айди пользователя: {requestor_id}
+Источник: {source}
+Длина темы: {len(topic)}''',reply_markup=markup)
+        return
     if check_result[0]:
          procent, orig = check_result[1],check_result[2]
          await bot.send_message(message.chat.id, 'Тема не добавлена!\nТакая тема(или подобная ей) уже есть в очереди.\nПридумайте что-нибудь другое')
@@ -188,21 +201,19 @@ async def del_theme(call):
     calldata = call.data.split('|&|')
     but = calldata[0]
     user_id = calldata[1]
+    topic_id = calldata[2]
+    user_name = await get_requestor_name_by_topic_id(topic_id, db)
     if but == 'del':
-        topic_id = calldata[2]
-        user_name = await get_requestor_name_by_topic_id(topic_id, db)
         await delete_theme(db,topic_id)
         await bot.reply_to(call.message,'Тема удалена')
     elif but == 'delpred':
-        topic_id = calldata[2]
         await delete_theme(db,topic_id)
         await add_warning(user_id,source,user_id)
         await bot.reply_to(call.message,'Тема удалена, +1 предупреждение')
     elif but == 'ban':
-        await block_user(user_id)
+        await block_user(user_name,user_id)
         await bot.reply_to(call.message,'Пользователь заблокирован. Ебать он лох')
     elif but == 'up':
-        topic_id = calldata[2]
         await up_theme(db,topic_id)
         await bot.reply_to(call.message,'Приоритет темы повышен.')
 

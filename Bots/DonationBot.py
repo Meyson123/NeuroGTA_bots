@@ -44,7 +44,7 @@ def on_message(data):
         message = donat['message']
         currency = donat['currency']
 
-        if user == None:
+        if user is None:
             user = "Аноним"
 
         donation_info = f'''

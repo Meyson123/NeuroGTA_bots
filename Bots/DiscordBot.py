@@ -11,7 +11,7 @@ from myConfig import TopicDelay, MashupDelay, CanAddTopic, CanAddMashup, NeedTop
 from Mongodb.CountScripts import add_count, sort_counter,add_warning,block_user,search_nick,warnings_by_user
 from Mongodb.BotsScripts import add_topic,connect_to_mongodb,filter,search_number,\
     check_topic_exists,add_mashup,replace_name,check_topic_style
-from TelegramSender import send_topic_to_telegram,send_similar_error,send_filter_error
+from TelegramSender import send_topic_to_telegram,send_similar_error,send_filter_error,send_len_error
 load_dotenv()
 
 intents = discord.Intents.default()
@@ -79,7 +79,7 @@ async def on_message(message):
             warnings = await warnings_by_user(requestor_name,source,requestor_id)
 
             if warnings == 5:
-                await block_user(requestor_id)
+                await block_user(requestor_name,requestor_id)
             if await search_nick(requestor_name,'BlackList',source,requestor_id):
                 await message.reply('Сожалеем,но вы заблокированы за нарушение правил. Вы можете подать заявку на разбан в https://discord.com/channels/1154075045149286470/1252310180037660762')
                 return
@@ -99,7 +99,10 @@ async def on_message(message):
                 await message.reply('Тема не добавлена!\nТакая тема(или подобная ей) уже есть в очереди.\nПридумайте что-нибудь другое')
                 await send_similar_error(topic,requestor_name,requestor_id,source,orig,procent)
                 return
-            
+            if len(topic) > 256:
+                await message.reply('Тема не добавлена\nТема слишком большая. Максимум 256 символов')
+                await send_len_error(topic,requestor_name,requestor_id,source,True)
+                return
             
             # topic_content = message.content[6:]  # Извлекаем содержимое темы из сообщения
 
