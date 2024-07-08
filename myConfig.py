@@ -27,6 +27,8 @@ NeedTopicDelay = True
 NeedMashupDelay = True
 NeedMashupDelayPerUser = False
 
+MaxLengthTG = 300
+
 TopicPriority = 1
 MashapPriority = 1
 
@@ -36,10 +38,6 @@ MashupsChatName = "💥заказать-мэшап"
 AdminNames = ['pryanik26', 'meyson420']
 AdminTgIds = [1484475666, 709479935, -1002175092872]
 ChanelToSubscribeID = '@neurogta'
-
-#Queue config
-QueueGeneratedText = "готово:"
-QueueSuggestedText = "очередь:"
 
 #Donat config
 DonatedTopicSumRub = 25

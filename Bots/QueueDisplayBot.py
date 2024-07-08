@@ -2,7 +2,6 @@ import time
 import sys
 import os
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
-from myConfig import QueueGeneratedText, QueueSuggestedText
 from Mongodb.BotsScripts import connect_to_mongodb
 # Путь к файлу, который будет читаться OBS
 output_file = "QueueDisplayData.txt"
@@ -19,13 +18,12 @@ while True:
         # Получение количества записей в коллекции
         suggested_count = suggested.count_documents({})
         generated_count = generated.count_documents({})
-        
+        count = suggested_count + generated_count
+
         # Запись количества записей в файл
         with open(output_file, "w", encoding="utf-8") as f:
-            f.write(f"{QueueSuggestedText} {suggested_count}\n")
-            f.write(f"{QueueGeneratedText} {generated_count}")
-        print(f"{QueueSuggestedText} {suggested_count}")
-        print(f"{QueueGeneratedText} {generated_count}")
+            f.write(f"очередь: {count}\n")
+        print(f"очередь: {count}\n")
         print()
     except Exception as e:
         print(f"An error occurred: {e}")

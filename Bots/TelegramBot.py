@@ -7,7 +7,7 @@ from dotenv import load_dotenv
 from telebot.async_telebot import AsyncTeleBot, types
 from telebot.types import InlineKeyboardMarkup,InlineKeyboardButton
 from myConfig import AdminTgIds, ChanelToSubscribeID, NeedTopicDelay, TopicDelayTg, TopicPriority, \
-    default_topic_suggest_message,threshold
+    default_topic_suggest_message,threshold, MaxLengthTG
 from Mongodb.CountScripts import warnings_by_user,add_count, sort_counter,add_warning,block_user,search_nick
 from Mongodb.BotsScripts import add_topic,connect_to_mongodb,filter,delete_theme,search_number,\
     get_topic_by_user,check_topic_exists, get_requestor_name_by_topic_id, check_topic_style, get_members_id,\
@@ -120,8 +120,8 @@ async def topic(message):
     topic, style_content = await check_topic_style(topic)
 
     check_result = await check_topic_exists(db, topic, threshold)
-    if len(topic) > 256:
-        await bot.send_message(message.chat.id,'Тема слишком большая.\n Тема должна быть не больше 256 символов')
+    if len(topic) > MaxLengthTG:
+        await bot.send_message(message.chat.id,f'Тема слишком большая.\nТема должна быть не больше {MaxLengthTG} символов')
         markup = InlineKeyboardMarkup()
         markup.add(InlineKeyboardButton('🖕 Заблокировать', callback_data= f"ban|&|{requestor_id}"))
         await bot.send_message(-1002175092872, f'''
