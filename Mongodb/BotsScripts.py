@@ -43,6 +43,23 @@ async def add_topic(db, requestor_name,requestor_id, source, priority, topic, st
             time.sleep(1)
     pass
 
+async def add_interaction(db, action):
+    while True:
+        try:
+            action_topic = {
+                "action": action
+            }
+
+            result = db.interactions.insert_one(action_topic)
+            print(
+                "Запись с новым действием была успешно добавлена в interactions. ID записи: " + str(result.inserted_id))
+            return result.inserted_id
+        except pymongo.errors.AutoReconnect as e:
+            print(f"Ошибка добавления записи в interactions. Продолжаем повторные попытки отправки запроса...")
+            print(e)
+            time.sleep(1)
+    pass
+
 
 # Добавление мешапа в БД
 async def add_mashup(db, requestor_name,requestor_id, source, priority, speaker, url):

@@ -11,7 +11,7 @@ from myConfig import AdminTgIds, ChanelToSubscribeID, NeedTopicDelay, TopicDelay
 from Mongodb.CountScripts import warnings_by_user,add_count, sort_counter,add_warning,block_user,search_nick
 from Mongodb.BotsScripts import add_topic,connect_to_mongodb,filter,delete_theme,search_number,\
     get_topic_by_user,check_topic_exists, get_requestor_name_by_topic_id, check_topic_style, get_members_id,\
-    up_theme
+    up_theme, add_interaction
 
 
 load_dotenv()
@@ -45,6 +45,21 @@ async def spam(message):
     except Exception as e:
         await bot.send_message(message.chat.id, f"Произошла ошибка при рассылке: {e}")
 
+@bot.message_handler(commands=['action'])
+async def spam(message):
+    if not(message.chat.id in AdminTgIds):
+        return
+    action = message.text[8:]
+    await add_interaction(db, action)
+    await bot.send_message(message.chat.id, f"Действие добавлено в базу")
+
+@bot.message_handler(commands=['skip'])
+async def spam(message):
+    if not(message.chat.id in AdminTgIds):
+        return
+    await add_interaction(db, "skip")
+    await bot.send_message(message.chat.id, f"История скипнута")
+
 
 
 
@@ -65,8 +80,13 @@ async def help_message(message):
     await bot.send_message(message.chat.id, 'Все до жути просто, братан. Просто пиши команду "/topic", а дальше свою тему\n\n'
                                             "Также по желанию можно добавить истории свой стиль(жанр), для этого нужно после темы добавить команду !стиль [Свой стиль]\n"
                                             'Пример: "/topic CJ и Smoke осознали что ими управляет нейросеть !стиль хоррор"\n\n'
-                                            "PS. В нашем дискорд сервере задержка на добавление темы меньше). Секретная ссылка на наш дискорд: https://discord.gg/HcfJw5umC3\n"
-                                            "Pss. Только никому🤫")
+                                            'Избегай запрещенных тем, описанных в команде /ban_themes.\n'
+                                            'Такие темы не будут сгенерированы, а если пытаться обойти правила, можно получить бан\n\n'
+                                            'Очередь своих тем можно узнать командой /queue\n'
+                                            'Эта команда выведет все твои темы, которые находятся в очереди, и их порядковый номер\n\n'
+                                            "P.S. В нашем дискорд сервере задержка на добавление темы меньше). Секретная ссылка на наш дискорд: https://discord.gg/HcfJw5umC3\n"
+                                            "P.S.S Заказать тему без очереди (и просто оказать поддержку) можно здесь:\n"
+                                            'https://www.donationalerts.com/r/neuro_gta')
 
 
 # Передача тем от бота
