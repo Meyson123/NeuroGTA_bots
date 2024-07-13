@@ -8,7 +8,7 @@ from myConfig import Project, valid_speakers, replacements, DonatEnableInteracti
     DonatEnableTopics, DonatEnableMashups, DonatedInteractionOneSumRub, DonatedInteractionTwoSumRub, \
     DonatedMashupSumRub, DonatedTopicSumRub
 from dotenv import load_dotenv
-from Mongodb.BotsScripts import add_topic, add_mashup, connect_to_mongodb, replace_name, filter,check_topic_style
+from Mongodb.BotsScripts import add_topic, add_mashup, connect_to_mongodb, replace_name, filter,check_topic_style, add_interaction
 from TelegramSender import send_donated, send_filter_error, send_topic_to_telegram
 
 load_dotenv()
@@ -67,7 +67,36 @@ def on_message(data):
             amountSplit = amount.split('.')
             FinalAmount = int(amountSplit[0])
 
+        requestor_name = f'Донатер {user}'
+
         if currency == 'RUB':
+
+            if FinalAmount == DonatedInteractionOneSumRub and DonatEnableInteractionOne:
+                print('Интерактив 1')
+                if asyncio.run(filter(user)):
+                    asyncio.run(send_filter_error(user, requestor_name, requestor_id, source, 0, False))
+                    return    
+                asyncio.run(add_interaction(db, "donater", user))
+
+            if FinalAmount == DonatedInteractionTwoSumRub and DonatEnableInteractionTwo:
+                print('Интерактив 2')
+                asyncio.run(add_interaction(db, "location", ""))
+
+            if FinalAmount >= DonatedTopicSumRub and DonatEnableTopics:
+                print('Тема задоначена')
+                
+                if message == "":
+                    return
+
+                if asyncio.run(filter(message)):
+                    asyncio.run(send_filter_error(message, requestor_name, requestor_id, source, 0, False))
+                    return
+                
+                message, style_content = asyncio.run(check_topic_style(message))
+
+                topic_id = asyncio.run(add_topic(db, requestor_name, requestor_id, source, 2, message, style_content))
+                asyncio.run(send_topic_to_telegram(message, style_content, requestor_name, requestor_id, source, 2, str(topic_id), False))
+
             if FinalAmount >= DonatedMashupSumRub and DonatEnableMashups:
                 print('Мэшап задоначен')
 
@@ -87,45 +116,8 @@ def on_message(data):
                         print("ОШИБКА! НЕОБХОДИМО РУЧНОЕ ДОБАВЛЕНИЕ")
                 else:
                     print("ОШИБКА! НЕОБХОДИМО РУЧНОЕ ДОБАВЛЕНИЕ")
-
-            elif FinalAmount >= DonatedTopicSumRub and DonatEnableTopics:
-                print('Тема задоначена')
-                requestor_name = f'Донатер {user}'
-
-                if asyncio.run(filter(message)):
-                    asyncio.run(send_filter_error(message, requestor_name, requestor_id, source, 0, False))
-                    return
-                
-                message, style_content = asyncio.run(check_topic_style(message))
-
-                topic_id = asyncio.run(add_topic(db, requestor_name, requestor_id, source, 2, message, style_content))
-                asyncio.run(send_topic_to_telegram(message, style_content, requestor_name, requestor_id, source, 2, str(topic_id), False))
-
-            elif FinalAmount == DonatedInteractionOneSumRub and DonatEnableInteractionOne:
-                print('Цветок задоначен')
-                data = 'Flower: ' + str(donat['username'])
-                add_donation_data(data)
-
-            elif FinalAmount == DonatedInteractionTwoSumRub and DonatEnableInteractionTwo:
-                print('Танец задоначен')
-                add_donation_data('Dance')
+                    
     except Exception as e:
         print(f"Error handling message: {e}")
 
-def clear_file():
-    try:
-        with open("DonationData.txt", "w", encoding="utf-8") as file:
-            file.write('')
-    except Exception as e:
-        print(f"Ошибка при очистке файла: {e}")
-
-def add_donation_data(data):
-    try:
-        with open("DonationData.txt", "a", encoding="utf-8") as file:
-            file.write(data + "\n")
-            print("Добавлено в файл: " + data)
-    except Exception as e:
-        print(f"Ошибка при записи в файл: {e}")
-
 sio.connect('wss://socket.donationalerts.ru:443',transports='websocket')
-clear_file()

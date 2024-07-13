@@ -43,11 +43,12 @@ async def add_topic(db, requestor_name,requestor_id, source, priority, topic, st
             time.sleep(1)
     pass
 
-async def add_interaction(db, action):
+async def add_interaction(db, action, parameter):
     while True:
         try:
             action_topic = {
-                "action": action
+                "action": action,
+                "parameter": parameter
             }
 
             result = db.interactions.insert_one(action_topic)

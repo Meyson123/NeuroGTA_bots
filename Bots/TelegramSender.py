@@ -130,8 +130,7 @@ async def send_donated(info):
     message =  f'''
 🤑🤑🤑ДОНАТ🤑🤑🤑
 {info}
-
-Информация ниже'''
+'''
 
     payload = {
     'chat_id': TELEGRAM_CHAT_ID,

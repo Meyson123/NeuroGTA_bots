@@ -42,9 +42,9 @@ ChanelToSubscribeID = '@neurogta'
 #Donat config
 DonatedTopicSumRub = 25
 DonatedMashupSumRub = 0
-DonatedInteractionOneSumRub = 0
-DonatedInteractionTwoSumRub = 0
+DonatedInteractionOneSumRub = 35
+DonatedInteractionTwoSumRub = 50
 DonatEnableTopics = True
 DonatEnableMashups = False
-DonatEnableInteractionOne = False
-DonatEnableInteractionTwo = False
+DonatEnableInteractionOne = True
+DonatEnableInteractionTwo = True
