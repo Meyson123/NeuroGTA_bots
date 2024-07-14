@@ -238,18 +238,22 @@ async def del_theme(call):
     but = calldata[0]
     user_id = calldata[1]
     topic_id = calldata[2]
-    user_name, user_tag, source = await get_parameters_by_topic_id(db, topic_id, 'requestor_name', 'user_tag', 'source')
+    topic, user_name, user_tag, source = await get_parameters_by_topic_id(db, topic_id, 'topic', 'requestor_name', 'user_tag', 'source')
     print(user_name, user_tag, source)
     if but == 'del':
         await delete_theme(db,topic_id)
         await bot.reply_to(call.message,'Тема удалена')
+        await bot.send_message(user_id, f'Ваша тема "{topic}" была удалена модераторами.')
     elif but == 'delpred':
         await delete_theme(db,topic_id)
         await add_warning(user_name,source,user_id)
+        warns = await warnings_by_user(user_name, source, user_id)
         await bot.reply_to(call.message,'Тема удалена, +1 предупреждение')
+        await bot.send_message(user_id, f'Ваша тема "{topic}" была удалена модераторами.\nКоличество предупреждений: {warns}/5')
     elif but == 'ban':
         await block_user(source,user_name,user_tag,user_id)
         await bot.reply_to(call.message,'Пользователь заблокирован. Ебать он лох')
+        await bot.send_message(user_id, 'Поздравляем, вы были заблокированы за нарушение правил! :)')
     elif but == 'up':
         await up_theme(db,topic_id)
         await bot.reply_to(call.message,'Приоритет темы повышен.')
