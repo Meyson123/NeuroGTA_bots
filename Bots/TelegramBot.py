@@ -46,7 +46,7 @@ async def spam(message):
         await bot.send_message(message.chat.id, f"Произошла ошибка при рассылке: {e}")
 
 @bot.message_handler(commands=['action'])
-async def spam(message):
+async def add_action(message):
     if not(message.chat.id in AdminTgIds):
         return
     action_parameter = message.text[8:].strip()
@@ -59,7 +59,7 @@ async def spam(message):
     await bot.send_message(message.chat.id, f"Действие добавлено в базу")
 
 @bot.message_handler(commands=['skip'])
-async def spam(message):
+async def skip(message):
     if not(message.chat.id in AdminTgIds):
         return
     await add_interaction(db, "skip", "")
