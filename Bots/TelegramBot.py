@@ -19,17 +19,22 @@ bot = AsyncTeleBot(os.getenv('TOKENTG'))
 mode = 'on'
 last_topic_time = {}
 
-
 # Функция подключения к mongodb
 db = connect_to_mongodb()
 source = 'Telegram'
 
+users_good = 0
+users_bad = 0
+
 async def send_message_to_user(user_id, message):
+    global users_bad, users_good
     try:
         await bot.send_message(user_id, message)
         print(f"Сообщение отправлено пользователю с ID {user_id}")
+        users_good += 1
     except Exception as e:
         print(f"Ошибка при отправке сообщения пользователю с ID {user_id}: {e}")
+        users_bad += 1
 
 
 @bot.message_handler(commands=['spam'])
@@ -44,6 +49,7 @@ async def spam(message):
             await send_message_to_user(user_id, url)
     except Exception as e:
         await bot.send_message(message.chat.id, f"Произошла ошибка при рассылке: {e}")
+    await bot.send_message(message.chat.id, f'Отправлено: {users_good}. Заблокировано: {users_bad}.')
 
 @bot.message_handler(commands=['action'])
 async def add_action(message):
