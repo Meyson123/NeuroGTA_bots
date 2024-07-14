@@ -1,8 +1,5 @@
-import json
-import socketio
 import sys
 import os
-import asyncio
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 from myConfig import Project, valid_speakers, replacements, DonatEnableInteractionOne, DonatEnableInteractionTwo, \
     DonatEnableTopics, DonatEnableMashups, DonatedInteractionOneSumRub, DonatedInteractionTwoSumRub, \
@@ -10,6 +7,8 @@ from myConfig import Project, valid_speakers, replacements, DonatEnableInteracti
 from dotenv import load_dotenv
 from Mongodb.BotsScripts import add_topic, add_mashup, connect_to_mongodb, replace_name, filter,check_topic_style, add_interaction
 from TelegramSender import send_donated, send_filter_error, send_topic_to_telegram
+from donationalerts.asyncio_api import Alert
+
 
 load_dotenv()
 db = connect_to_mongodb()
@@ -17,32 +16,15 @@ print(db)
 donated_id = 0
 source = 'Donation'
 
-sio = socketio.Client()
+alert = Alert(os.getenv('TOKENDONATGTA') if Project == 'Gta' else os.getenv('TOKENDONATSMESH'))
 
-@sio.on('connect')
-def on_connect():
+@alert.event()
+async def new_donation(event):
     try:
-        if Project == 'Gta':
-            token = os.getenv('TOKENDONATGTA')
-        else:
-            token = os.getenv('TOKENDONATSMESH')
-        sio.emit('add-user', {"token": token, "type": "alert_widget"})
-        print("Connected to the server")
-    except Exception as e:
-        print(f"Error during connection: {e}")
-
-@sio.on('disconnect')
-def on_disconnect():
-    print("Disconnected from server")
-
-@sio.on('donation')
-def on_message(data):
-    try:
-        donat = json.loads(data)
-        user = donat['username']
-        amount = donat['amount']
-        message = donat['message']
-        currency = donat['currency']
+        user = event.username
+        amount = event.amount
+        message = event.message
+        currency = event.currency
 
         if user is None:
             user = "Аноним"
@@ -51,7 +33,7 @@ def on_message(data):
 {user} задонатил {amount} {currency}
 Сообщение: {message}'''
 
-        asyncio.run(send_donated(donation_info))
+        await send_donated(donation_info)
         print(f"Received donation: {donation_info}")
 
         global donated_id
@@ -73,14 +55,14 @@ def on_message(data):
 
             if FinalAmount == DonatedInteractionOneSumRub and DonatEnableInteractionOne:
                 print('Интерактив 1')
-                if asyncio.run(filter(user)):
-                    asyncio.run(send_filter_error(user, requestor_name, requestor_id, source, 0, False))
+                if await filter(user):
+                    await send_filter_error(user, requestor_name, requestor_id, source, 0, False)
                     return    
-                asyncio.run(add_interaction(db, "donater", user))
+                await add_interaction(db, "donater", user)
 
             if FinalAmount == DonatedInteractionTwoSumRub and DonatEnableInteractionTwo:
                 print('Интерактив 2')
-                asyncio.run(add_interaction(db, "location", ""))
+                await add_interaction(db, "location", "")
 
             if FinalAmount >= DonatedTopicSumRub and DonatEnableTopics:
                 print('Тема задоначена')
@@ -88,14 +70,14 @@ def on_message(data):
                 if message == "":
                     return
 
-                if asyncio.run(filter(message)):
-                    asyncio.run(send_filter_error(message, requestor_name, requestor_id, source, 0, False))
+                if await filter(message):
+                    await send_filter_error(message, requestor_name, requestor_id, source, 0, False)
                     return
                 
-                message, style_content = asyncio.run(check_topic_style(message))
+                message, style_content = await check_topic_style(message)
 
-                topic_id = asyncio.run(add_topic(db, requestor_name, requestor_id, source, 2, message, style_content))
-                asyncio.run(send_topic_to_telegram(message, style_content, requestor_name, requestor_id, source, 2, str(topic_id), False))
+                topic_id = await add_topic(db, requestor_name, requestor_id, source, 2, message, style_content)
+                await send_topic_to_telegram(message, style_content, requestor_name, requestor_id, source, 2, str(topic_id), False)
 
             if FinalAmount >= DonatedMashupSumRub and DonatEnableMashups:
                 print('Мэшап задоначен')
@@ -111,7 +93,7 @@ def on_message(data):
                     speaker, url = mashup.split(" ", 1)
                     if speaker in valid_speakers:
                         eng_speaker = replace_name(speaker, replacements)
-                        asyncio.run(add_mashup(db, requestor, source, 2, eng_speaker, url))
+                        await add_mashup(db, requestor, source, 2, eng_speaker, url)
                     else:
                         print("ОШИБКА! НЕОБХОДИМО РУЧНОЕ ДОБАВЛЕНИЕ")
                 else:
@@ -119,5 +101,3 @@ def on_message(data):
                     
     except Exception as e:
         print(f"Error handling message: {e}")
-
-sio.connect('wss://socket.donationalerts.ru:443',transports='websocket')
