@@ -106,7 +106,7 @@ async def on_message(message):
             
             # topic_content = message.content[6:]  # Извлекаем содержимое темы из сообщения
 
-            topic_id = await add_topic(db, requestor_name, requestor_id, source, TopicPriority, topic, style_content)  # Добавляем тему в БД
+            topic_id = await add_topic(db, requestor_name, "", requestor_id, source, TopicPriority, topic, style_content)  # Добавляем тему в БД
             await send_topic_to_telegram(topic, style_content, requestor_name, requestor_id, source, TopicPriority, str(topic_id), True)
             await add_count(message.author.name, source, requestor_id)
             await sort_counter()

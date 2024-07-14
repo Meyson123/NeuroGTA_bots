@@ -22,13 +22,14 @@ ban_words = [
     'украинскую', 'украинской', 'детскую', 'детской', 'геноцид', 'геноцида', 'геноциду', 'геноцидом', 'геноциде',
     'евреев', 'еврею', 'евреем', 'еврей']
 
-async def add_topic(db, requestor_name,requestor_id, source, priority, topic, style):
+async def add_topic(db, requestor_name,user_tag,requestor_id, source, priority, topic, style):
     while True:
         try:
             suggested_topic = {
                 "type": "topic",
                 "style": style,
                 "requestor_name": requestor_name,
+                "user_tag": user_tag,
                 "requestor_id": requestor_id,
                 "source": source,
                 "priority": priority,
@@ -181,12 +182,12 @@ async def get_topic_by_user(id, db):
     for sug_topic in list(suggested.find({'requestor_id':id})):
         all_topics.append(sug_topic)
     return all_topics
-
-async def get_requestor_name_by_topic_id(topic_id, db):
+    
+async def get_parameters_by_topic_id(db, topic_id, *parameters):
     try:
         document = db["suggested_topics"].find_one({"_id": ObjectId(topic_id)})
         if document:
-            info = document['requestor_name']
+            info = tuple(document.get(param) for param in parameters)
             return info
         else:
             print(f"Документ с _id '{topic_id}' не найден в коллекции 'suggested_topics'.")

@@ -10,8 +10,8 @@ from myConfig import AdminTgIds, ChanelToSubscribeID, NeedTopicDelay, TopicDelay
     default_topic_suggest_message,threshold, MaxLengthTG
 from Mongodb.CountScripts import warnings_by_user,add_count, sort_counter,add_warning,block_user,search_nick
 from Mongodb.BotsScripts import add_topic,connect_to_mongodb,filter,delete_theme,search_number,\
-    get_topic_by_user,check_topic_exists, get_requestor_name_by_topic_id, check_topic_style, get_members_id,\
-    up_theme, add_interaction
+    get_topic_by_user,check_topic_exists, check_topic_style, get_members_id,\
+    up_theme, add_interaction, get_parameters_by_topic_id
 
 
 load_dotenv()
@@ -116,6 +116,7 @@ async def topic(message):
     topic = message.text[7:]
     requestor_name = message.from_user.first_name
     requestor_id = message.from_user.id
+    user_tag = f'@{message.from_user.username}'
     warnings = await warnings_by_user(requestor_name, source, requestor_id)
     if mode == 'off':
         await bot.send_message(message.chat.id,'Сожалеем,но прием тем на этом стриме уже завершен, ждем ваши темы на следующем.\n    - с любовью,Meyson\n\nPs. Темы все еще можно задавать за донат(без очереди) https://www.donationalerts.com/r/neuro_gta')
@@ -144,6 +145,7 @@ async def topic(message):
 Тема: {topic}
 Ник автора: {requestor_name}
 Айди пользователя: {requestor_id}
+Тег: {user_tag}
 Источник: {source}
 Количество предупреждений: {warnings+1}''',reply_markup=markup)
         return
@@ -161,6 +163,7 @@ async def topic(message):
 Тема: {topic}
 Ник автора: {requestor_name}
 Айди пользователя: {requestor_id}
+Тег: {user_tag}
 Источник: {source}
 Длина темы: {len(topic)}''',reply_markup=markup)
         return
@@ -173,6 +176,7 @@ async def topic(message):
 Тема: {topic}
 Ник автора: {requestor_name}
 Айди пользователя: {requestor_id}
+Тег: {user_tag}
 Источник: {source}
 Оригинальная тема: {orig}
 Процент сходства: {procent}%''')
@@ -188,7 +192,7 @@ async def topic(message):
                 return
 
 
-    topic_id = await add_topic(db, requestor_name,requestor_id, source, TopicPriority, topic, style_content)
+    topic_id = await add_topic(db, requestor_name, user_tag, requestor_id, source, TopicPriority, topic, style_content)
     markup = InlineKeyboardMarkup()
     markup.add(InlineKeyboardButton('🗑 Удалить тему', callback_data=f"del|&|{requestor_id}|&|{topic_id}"))
     markup.add(InlineKeyboardButton('🗑 Удалить тему + Предупреждение', callback_data=f"delpred|&|{requestor_id}|&|{topic_id}"))
@@ -199,6 +203,7 @@ async def topic(message):
 Стиль: {style_content}
 Ник автора: {requestor_name}
 Айди пользователя: {requestor_id}
+Тег: {user_tag}
 Источник: {source}
 Приоритет: {TopicPriority}''',reply_markup=markup)
     await bot.reply_to(message, text=default_topic_suggest_message + f'\nТвоя позиция в очереди: {await search_number(topic_id,db)}\n\nЧтобы посмотреть свою текущую позицию в очереди, используй команду:\n/queue')
@@ -233,16 +238,17 @@ async def del_theme(call):
     but = calldata[0]
     user_id = calldata[1]
     topic_id = calldata[2]
-    user_name = await get_requestor_name_by_topic_id(topic_id, db)
+    user_name, user_tag, source = await get_parameters_by_topic_id(db, topic_id, 'requestor_name', 'user_tag', 'source')
+    print(user_name, user_tag, source)
     if but == 'del':
         await delete_theme(db,topic_id)
         await bot.reply_to(call.message,'Тема удалена')
     elif but == 'delpred':
         await delete_theme(db,topic_id)
-        await add_warning(user_id,source,user_id)
+        await add_warning(user_name,source,user_id)
         await bot.reply_to(call.message,'Тема удалена, +1 предупреждение')
     elif but == 'ban':
-        await block_user(user_name,user_id)
+        await block_user(source,user_name,user_tag,user_id)
         await bot.reply_to(call.message,'Пользователь заблокирован. Ебать он лох')
     elif but == 'up':
         await up_theme(db,topic_id)
