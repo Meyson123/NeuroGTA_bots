@@ -71,6 +71,12 @@ async def skip(message):
     await add_interaction(db, "skip", "")
     await bot.send_message(message.chat.id, f"История скипнута")
 
+@bot.message_handler(commands=['save'])
+async def save(message):
+    if not(message.chat.id in AdminTgIds):
+        return
+    await add_interaction(db, "save", "")
+    await bot.send_message(message.chat.id, f"История сохранена")
 
 
 
