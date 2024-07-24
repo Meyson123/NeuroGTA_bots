@@ -6,7 +6,7 @@ from myConfig import Project, valid_speakers, replacements, DonatEnableInteracti
     DonatEnableTopics, DonatEnableMashups, DonatedInteractionOneSumRub, DonatedInteractionTwoSumRub, \
     DonatedMashupSumRub, DonatedTopicSumRub
 from dotenv import load_dotenv
-from Mongodb.BotsScripts import add_topic, add_mashup, connect_to_mongodb, replace_name, filter,check_topic_style, add_interaction
+from Mongodb.BotsScripts import add_topic, add_mashup, connect_to_mongodb, replace_name, filt,check_topic_style, add_interaction
 from TelegramSender import send_donated, send_filter_error, send_topic_to_telegram
 from donationalerts.asyncio_api import Alert
 
@@ -57,7 +57,7 @@ async def new_donation(event):
             if FinalAmount == DonatedInteractionOneSumRub and DonatEnableInteractionOne:
                 print('Интерактив 1')
                 if message.lower().startswith("/бандит"):
-                    if await filter(user):
+                    if await filt(user):
                         await send_filter_error(user, requestor_name, requestor_id, source, 0, False)
                         return    
                     await add_interaction(db, "donater", user)
@@ -90,7 +90,7 @@ async def new_donation(event):
                 
                 message = message[6:]
 
-                if await filter(message):
+                if await filt(message):
                     await send_filter_error(message, requestor_name, requestor_id, source, 0, False)
                     return
                 

@@ -9,7 +9,7 @@ from telebot.types import InlineKeyboardMarkup,InlineKeyboardButton
 from myConfig import AdminTgIds, ChanelToSubscribeID, NeedTopicDelay, TopicDelayTg, TopicPriority, \
     default_topic_suggest_message,threshold, MaxLengthTG, DonatedTopicSumRub
 from Mongodb.CountScripts import warnings_by_user,add_count, sort_counter,add_warning,block_user,search_nick
-from Mongodb.BotsScripts import add_topic,connect_to_mongodb,filter,delete_theme,search_number,\
+from Mongodb.BotsScripts import add_topic,connect_to_mongodb,filt,delete_theme,search_number,\
     get_topic_by_user,check_topic_exists, check_topic_style, get_members_id,\
     up_theme, add_interaction, get_parameters_by_topic_id
 
@@ -136,7 +136,7 @@ async def topic(message):
     if topic == '' or topic == 'NeuroGta_bot':
         await bot.send_message(message.chat.id, 'Тема не может быть пустой. Пожалуйста, напиши свою тему сразу после команды /topic')
         return
-    if await filter(topic):
+    if await filt(topic):
         await add_warning(requestor_name,source,requestor_id)
         last_topic_time[requestor_id] = time.time()
         if warnings is None:
@@ -242,7 +242,9 @@ async def queue(message):
         topic = topics['topic']
         spisok = spisok + f'{k}) {topic} - {number} место в очереди\n'
         k += 1
-    await bot.send_message(message.chat.id,f'{spisok}\nP.S. Если до твоей темы далеко - за {DonatedTopicSumRub}₽ можно заказать тему без очереди!\nhttps://www.donationalerts.com/r/neuro_gta 💖')
+    if spisok == '':
+        spisok = 'Пока у тебя нет тем в очереди.'
+    await bot.send_message(message.chat.id,f'{spisok}\n\nP.S. Если до твоей темы далеко - за {DonatedTopicSumRub}₽ можно заказать тему без очереди!\nhttps://www.donationalerts.com/r/neuro_gta 💖')
     #await bot.send_message(message.chat.id,spisok)
 
 @bot.callback_query_handler(func=lambda call: True)

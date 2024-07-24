@@ -9,7 +9,7 @@ from myConfig import TopicDelay, MashupDelay, CanAddTopic, CanAddMashup, NeedTop
     NeedMashupDelay, NeedMashupDelayPerUser, TopicsChatName, MashupsChatName, AdminNames, valid_speakers, TopicPriority, \
     MashapPriority, replacements, default_topic_suggest_message,Project,threshold
 from Mongodb.CountScripts import add_count, sort_counter,add_warning,block_user,search_nick,warnings_by_user
-from Mongodb.BotsScripts import add_topic,connect_to_mongodb,filter,search_number,\
+from Mongodb.BotsScripts import add_topic,connect_to_mongodb,filt,search_number,\
     check_topic_exists,add_mashup,replace_name,check_topic_style
 from TelegramSender import send_topic_to_telegram,send_similar_error,send_filter_error,send_len_error
 load_dotenv()
@@ -83,7 +83,7 @@ async def on_message(message):
             if await search_nick(requestor_name,'BlackList',source,requestor_id):
                 await message.reply('Сожалеем,но вы заблокированы за нарушение правил. Вы можете подать заявку на разбан в https://discord.com/channels/1154075045149286470/1252310180037660762')
                 return
-            if await filter(topic):
+            if await filt(topic):
                 await add_warning(requestor_name,source,requestor_id)
                 last_topic_time[requestor_id] = time.time()
                 if warnings is None:

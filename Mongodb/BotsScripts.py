@@ -89,7 +89,7 @@ async def add_mashup(db, requestor_name,requestor_id, source, priority, speaker,
             time.sleep(1)
 
 
-async def filter(topic):
+async def filt(topic):
     topic_words = topic.split()
     for word in ban_words:
         for topic_word in topic_words:
@@ -177,12 +177,9 @@ async def get_members_id(db):
 async def get_topic_by_user(id, db):
     suggested = db["suggested_topics"]
     generated = db["generated_topics"]
-    all_topics = []
-    for gen_topic in list(generated.find({'requestor_id':id})):
-        all_topics.append(gen_topic)
-    for sug_topic in list(suggested.find({'requestor_id':id})):
-        all_topics.append(sug_topic)
-    return all_topics
+    return list(generated.find({'requestor_id':id})) + list(suggested.find({'requestor_id':id}))
+
+
     
 async def get_parameters_by_topic_id(db, topic_id, *parameters):
     try:
