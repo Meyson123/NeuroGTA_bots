@@ -40,11 +40,11 @@ AdminTgIds = [1484475666, 709479935, -1002175092872]
 ChanelToSubscribeID = '@neurogta'
 
 #Donat config
-DonatedTopicSumRub = 25
+DonatedTopicSumRub = 50
 DonatedMashupSumRub = 0
 DonatedInteractionOneSumRub = 35
-DonatedInteractionTwoSumRub = 50
+DonatedInteractionTwoSumRub = 0
 DonatEnableTopics = True
 DonatEnableMashups = False
 DonatEnableInteractionOne = True
-DonatEnableInteractionTwo = True
+DonatEnableInteractionTwo = False

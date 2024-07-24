@@ -1,5 +1,6 @@
 import sys
 import os
+import re
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 from myConfig import Project, valid_speakers, replacements, DonatEnableInteractionOne, DonatEnableInteractionTwo, \
     DonatEnableTopics, DonatEnableMashups, DonatedInteractionOneSumRub, DonatedInteractionTwoSumRub, \
@@ -55,20 +56,39 @@ async def new_donation(event):
 
             if FinalAmount == DonatedInteractionOneSumRub and DonatEnableInteractionOne:
                 print('Интерактив 1')
-                if await filter(user):
-                    await send_filter_error(user, requestor_name, requestor_id, source, 0, False)
-                    return    
-                await add_interaction(db, "donater", user)
+                if message.lower().startswith("/бандит"):
+                    if await filter(user):
+                        await send_filter_error(user, requestor_name, requestor_id, source, 0, False)
+                        return    
+                    await add_interaction(db, "donater", user)
 
-            if FinalAmount == DonatedInteractionTwoSumRub and DonatEnableInteractionTwo:
-                print('Интерактив 2')
-                await add_interaction(db, "location", "")
+                elif message.lower().startswith("/локация"):
+                    await add_interaction(db, "location", user)
+
+                elif message.lower().startswith("/драка"):
+                    message = message[6:].strip()
+                    parameter = ""
+                    pattern = r"^\s*(\w+)?\s*(\w+)?\s*$" #паттерн двух имён
+                    match = re.match(pattern, message)
+                    if match:
+                        name1, name2 = match.groups()
+                        name1 = name1.upper() if name1 else None
+                        name2 = name2.upper() if name2 else None
+                        if (name1 and name1 in valid_speakers) and (name2 and name2 in valid_speakers):
+                            parameter = f"{name1} {name2}"
+                    await add_interaction(db, "fight", parameter)
+
+            # if FinalAmount == DonatedInteractionTwoSumRub and DonatEnableInteractionTwo:
+            #     print('Интерактив 2')
+            #     await add_interaction(db, "location", "")
 
             if FinalAmount >= DonatedTopicSumRub and DonatEnableTopics:
                 print('Тема задоначена')
                 
-                if message == "":
+                if message == "" or not message.lower().startswith("/тема"):
                     return
+                
+                message = message[6:]
 
                 if await filter(message):
                     await send_filter_error(message, requestor_name, requestor_id, source, 0, False)
@@ -99,5 +119,7 @@ async def new_donation(event):
                 else:
                     print("ОШИБКА! НЕОБХОДИМО РУЧНОЕ ДОБАВЛЕНИЕ")
                     
+    except KeyError as e:
+        print(f"Error handling message: Missing key {e}")
     except Exception as e:
         print(f"Error handling message: {e}")

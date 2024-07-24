@@ -83,3 +83,14 @@ async def sort_counter():
         collection.delete_many({})
         collection.insert_many(sorted_documents)
 
+async def format_number(number):
+    # Определяем масштабирование
+    if number >= 1_000_000_000:
+        return f"{number / 1_000_000_000:.1f}B"  # Миллиарды
+    elif number >= 1_000_000:
+        return f"{number / 1_000_000:.1f}M"  # Миллионы
+    elif number >= 1_000:
+        return f"{number / 1_000:.0f}k"  # Тысячи
+    else:
+        return str(number)  # Меньше тысячи
+

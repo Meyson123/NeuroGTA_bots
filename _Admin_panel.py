@@ -25,26 +25,32 @@ def donbot():
 
 def controller():
     os.system(f'cd / && cd {basedir} && start 4.Controller.bat')
+    print('Контроллер запущен')
 
 
 def RvcStart():
     os.system(f'cd / && cd {basedir} && start 1.RVC.bat')
+    print('RVC запущен')
 
 
 def RvcTTSStart():
     os.system(f'cd / && cd {basedir}  && start 2.RVCTTS.bat')
+    print('RVC TTS запущен')
 
 
 def RvcGateway():
     os.system(f'cd / && cd {basedir} && start 3.RVCGateway.bat')
+    print('RVC GATE запущен')
 
 
 def startBuild():
-    os.startfile(r"D:00_AI_Stream\BUILDS\10.06.2024\AI-Smeshariki-URP.exe")
+    os.startfile(r"N:\AI-Stream-Kit\AI_Gta\BUILDS\Vertical 5\AI_Gta.exe")
+    print('Билд запущен')
 
 
 def qcounter():
-    subprocess.Popen(['start', 'python', 'Bots/QueueDisplayBot.py'], shell=True)
+    os.system(f'cd / && cd {basedir} && start 8.StartQueueView.bat')
+    #subprocess.Popen(['start', 'python', 'Bots/QueueDisplayBot.py'], shell=True)
     print('Бот счетчик тем запущен')
 
 
