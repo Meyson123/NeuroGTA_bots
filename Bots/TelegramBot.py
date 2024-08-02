@@ -5,15 +5,14 @@ import time
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 from dotenv import load_dotenv
 from telebot.async_telebot import AsyncTeleBot, types
-from telebot.types import InlineKeyboardMarkup,InlineKeyboardButton, LabeledPrice, ShippingOption
+from telebot.types import InlineKeyboardMarkup,InlineKeyboardButton
 from myConfig import AdminTgIds, ChanelToSubscribeID, NeedTopicDelay, TopicDelayTg, TopicPriority, \
-    default_topic_suggest_message,threshold, MaxLengthTG, DonatedTopicSumRub, SubChat
+    default_topic_suggest_message,threshold, MaxLengthTG, DonatedTopicSumRub, SubsLvl1ChatID
 from Mongodb.CountScripts import warnings_by_user,add_count, sort_counter,add_warning,block_user,search_nick
 from Mongodb.BotsScripts import add_topic,connect_to_mongodb,filt,delete_theme,search_number,\
     get_topic_by_user,check_topic_exists, check_topic_style, get_members_id,\
-    up_theme, add_interaction, get_parameters_by_topic_id,get_theme_by_number
-import socket
-import threading
+    up_theme, add_interaction, get_parameters_by_topic_id,get_id_by_theme_number
+from quart import Quart, request
 
 load_dotenv()
 bot = AsyncTeleBot(os.getenv('TOKENTG'))
@@ -25,35 +24,38 @@ source = 'Telegram'
 
 users_good = 0
 users_bad = 0
-def check_theme():
-    pass
 
+# Получение запроса от Node JS
+app = Quart(__name__)
+@app.route('/telegram-webhook', methods=['POST'])
+async def telegram_webhook():
+    data = await request.json
+    text = data.get('text')
+    if text: 
+        if (id_3 := await get_id_by_theme_number(db, 2)):
+            await send_notification(SubsLvl1ChatID, id_3, 3)
+        if (id_1 := await get_id_by_theme_number(db, 0)):
+            await send_notification(SubsLvl1ChatID, id_1, 1)
+        #print(text, notification_id)
+        return {'status': 'success'}
+    else:
+        return {'status': 'failed'}, 400
 
-def start_server():
-    # Создаем сокет
-    server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-
-    # Привязываем сокет к адресу и порту
-    server_socket.bind(('localhost', 12345))
-
-    # Начинаем прослушивание входящих соединений
-    server_socket.listen(1)
-    print("Сервер запущен и ожидает соединений...")
-
-    while True:
-        # Принимаем соединение
-        client_socket, addr = server_socket.accept()
-        print(f"Соединение установлено с {addr}")
-
-        # Получаем данные от клиента
-        data = client_socket.recv(1024)
-        print(f"Получено сообщение: {data.decode()}")
-
-        # Отправляем ответ
-        client_socket.sendall('Привет от сервера!'.encode('utf-8'))
-
-        # Закрываем соединение
-        client_socket.close()
+async def send_notification(chat_id, admin_id, position):
+    try:
+        admins = await bot.get_chat_administrators(chat_id)
+        for admin in admins:
+            if admin.user.id == admin_id:
+                if position == 1:
+                    text = 'Твоя тема будет прямо сейчас! [(СТРИМ ТУТ)](https://www.tiktok.com/@neurogta/live)'
+                else:
+                    text = 'Твоя тема скоро будет в эфире! Номер в очереди: 3'
+                await bot.send_message(admin_id, text, parse_mode='Markdown')
+                return None
+        return None
+    except Exception as e:
+        print(f"Произошла ошибка: {e}")
+        return None
 
 
 async def send_message_to_user(user_id, message):
@@ -107,6 +109,13 @@ async def save(message):
         return
     await add_interaction(db, "save", "")
     await bot.send_message(message.chat.id, f"История сохранена")
+
+@bot.message_handler(commands=['test'])
+async def test(message):
+    if not(message.chat.id in AdminTgIds):
+        return
+    link = "[СТРИМ](https://www.tiktok.com/@neurogta/live)"
+    await bot.send_message(AdminTgIds[1], link, parse_mode='Markdown')
 
 
 
@@ -332,4 +341,14 @@ print('Запуск ТГ бота...')
 
 
 
-asyncio.run(bot.polling(skip_pending=True,non_stop=True))
+async def main():
+    # Запуск сервера Quart
+    await asyncio.gather(
+        app.run_task(port=3000),  # Запуск сервера Quart в фоновом режиме
+        bot.polling(non_stop=True, skip_pending=True)  # Запуск бота
+    )
+
+if __name__ == '__main__':
+    asyncio.run(main())
+
+

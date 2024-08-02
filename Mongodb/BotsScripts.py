@@ -179,7 +179,7 @@ async def get_members_id(db):
 
 async def get_topic_by_user(id, db):
     suggested = db["suggested_topics"]
-    generated = db["c"]
+    generated = db["generated_topics"]
     return list(generated.find({'requestor_id':id})) + list(suggested.find({'requestor_id':id}))
 
 
@@ -197,11 +197,16 @@ async def get_parameters_by_topic_id(db, topic_id, *parameters):
     except pymongo.errors.PyMongoError as e:
         print(f"Ошибка при поиске информации по _id '{topic_id}' в коллекции 'suggested_topics': {e}")
         return None
-def get_theme_by_number(db,number):
-    document = db['suggested_topics'].find().skip(number).limit(1)
-    for doc in document:
-        id = doc['requestor_id']
-        return id
+    
+async def get_id_by_theme_number(db,number):
+    document = db['generated_topics'].find().skip(number).limit(1)
+    if document:
+        for doc in document:
+            if doc['source'] == 'Telegram':
+                id = doc['requestor_id']
+                return id
+            return 0
+    return 0
 
 def replace_name(name, replacements):
     for old, new in replacements:
