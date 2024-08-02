@@ -37,6 +37,7 @@ MashupsChatName = "💥заказать-мэшап"
 
 AdminNames = ['pryanik26', 'meyson420']
 AdminTgIds = [1484475666, 709479935, -1002175092872]
+SubChat = [-4263371994]
 ChanelToSubscribeID = '@neurogta'
 
 #Donat config
