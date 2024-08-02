@@ -5,26 +5,56 @@ import time
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 from dotenv import load_dotenv
 from telebot.async_telebot import AsyncTeleBot, types
-from telebot.types import InlineKeyboardMarkup,InlineKeyboardButton
+from telebot.types import InlineKeyboardMarkup,InlineKeyboardButton, LabeledPrice, ShippingOption
 from myConfig import AdminTgIds, ChanelToSubscribeID, NeedTopicDelay, TopicDelayTg, TopicPriority, \
-    default_topic_suggest_message,threshold, MaxLengthTG, DonatedTopicSumRub
+    default_topic_suggest_message,threshold, MaxLengthTG, DonatedTopicSumRub, SubChat
 from Mongodb.CountScripts import warnings_by_user,add_count, sort_counter,add_warning,block_user,search_nick
 from Mongodb.BotsScripts import add_topic,connect_to_mongodb,filt,delete_theme,search_number,\
     get_topic_by_user,check_topic_exists, check_topic_style, get_members_id,\
-    up_theme, add_interaction, get_parameters_by_topic_id
-
+    up_theme, add_interaction, get_parameters_by_topic_id,get_theme_by_number
+import socket
+import threading
 
 load_dotenv()
 bot = AsyncTeleBot(os.getenv('TOKENTG'))
 mode = 'on'
 last_topic_time = {}
-
 # Функция подключения к mongodb
 db = connect_to_mongodb()
 source = 'Telegram'
 
 users_good = 0
 users_bad = 0
+def check_theme():
+    pass
+
+
+def start_server():
+    # Создаем сокет
+    server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+
+    # Привязываем сокет к адресу и порту
+    server_socket.bind(('localhost', 12345))
+
+    # Начинаем прослушивание входящих соединений
+    server_socket.listen(1)
+    print("Сервер запущен и ожидает соединений...")
+
+    while True:
+        # Принимаем соединение
+        client_socket, addr = server_socket.accept()
+        print(f"Соединение установлено с {addr}")
+
+        # Получаем данные от клиента
+        data = client_socket.recv(1024)
+        print(f"Получено сообщение: {data.decode()}")
+
+        # Отправляем ответ
+        client_socket.sendall('Привет от сервера!'.encode('utf-8'))
+
+        # Закрываем соединение
+        client_socket.close()
+
 
 async def send_message_to_user(user_id, message):
     global users_bad, users_good
@@ -129,7 +159,7 @@ async def topic(message):
         await bot.send_sticker(message.chat.id,'CAACAgIAAxkBAAEMZ-JmgY_WuGvpBWdSmJ99nMQgy7qMqQACBxkAAs0xEEghvxdEJ73qJDUE')
         return
     if warnings == 5:
-        await block_user(requestor_name,requestor_id)
+        await block_user(requestor_name,requestor_id,user_tag,requestor_id)
     if await search_nick(requestor_name,'BlackList',source,requestor_id):
         await bot.send_message(message.chat.id,'Сожалеем,но вы заблокированы за нарушение правил. Вы можете попробовать вымолить прощение у @Meyson420')
         return
@@ -213,9 +243,13 @@ async def topic(message):
 Тег: {user_tag}
 Источник: {source}
 Приоритет: {TopicPriority}''',reply_markup=markup)
-    await bot.reply_to(message, text=default_topic_suggest_message + f'\nТвоя позиция в очереди: {await search_number(topic_id,db)}\n\nЧтобы посмотреть свою текущую позицию в очереди, используй команду:\n/queue')
+    markup2 = InlineKeyboardMarkup()
+    markup2.add(InlineKeyboardButton('⬆️ Отправить тему без очереди',callback_data= f'up|&|{requestor_id}|&|{topic_id}'))
+    markup2.add(InlineKeyboardButton('🔊 Включить уведомление',callback_data= f'notice|&|{requestor_id}|&|{topic_id}'))
+    await bot.reply_to(message, text=default_topic_suggest_message + f'\nТвоя позиция в очереди: {await search_number(topic_id,db)}\n\nЧтобы посмотреть свою текущую позицию в очереди, используй команду:\n/queue',reply_markup = markup2)
     await add_count(requestor_name, source, str(requestor_id))
     await sort_counter()
+    await bot.send_message(message.chat.id,'Хочешь получить уведомление,когда придет время твоей темы? \n➡️️ Пиши /subscribe')
     last_topic_time[requestor_id] = time.time()
 
 @bot.message_handler(commands=['ban_themes'])
@@ -246,7 +280,9 @@ async def queue(message):
         spisok = 'Пока у тебя нет тем в очереди.'
     await bot.send_message(message.chat.id,f'{spisok}\n\nP.S. Если до твоей темы далеко - за {DonatedTopicSumRub}₽ можно заказать тему без очереди!\nhttps://www.donationalerts.com/r/neuro_gta 💖')
     #await bot.send_message(message.chat.id,spisok)
-
+@bot.message_handler(commands=['subscribe'])
+async def subscribe(message):
+    await bot.send_message(message.chat.id,'Услуга пока недоступна')
 @bot.callback_query_handler(func=lambda call: True)
 async def del_theme(call):
     calldata = call.data.split('|&|')
@@ -272,6 +308,8 @@ async def del_theme(call):
     elif but == 'up':
         await up_theme(db,topic_id)
         await bot.reply_to(call.message,'Приоритет темы повышен.')
+    elif but == 'notice':
+        pass
 
 @bot.message_handler(commands='off')
 async def off(message):
@@ -290,7 +328,8 @@ async def send_text(message):
             await bot.send_sticker(message.chat.id,'CAACAgIAAxkBAAEMZ-JmgY_WuGvpBWdSmJ99nMQgy7qMqQACBxkAAs0xEEghvxdEJ73qJDUE')
 
 
-
 print('Запуск ТГ бота...')
+
+
 
 asyncio.run(bot.polling(skip_pending=True,non_stop=True))
