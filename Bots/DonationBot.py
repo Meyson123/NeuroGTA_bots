@@ -85,10 +85,11 @@ async def new_donation(event):
             if FinalAmount >= DonatedTopicSumRub and DonatEnableTopics:
                 print('Тема задоначена')
                 
-                if message == "" or not message.lower().startswith("/тема"):
+                if message == "":
                     return
                 
-                message = message[6:]
+                if message.lower().startswith("/тема"):
+                    message = message[6:]
 
                 if await filt(message):
                     await send_filter_error(message, requestor_name, requestor_id, source, 0, False)

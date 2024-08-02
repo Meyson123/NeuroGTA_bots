@@ -16,11 +16,19 @@ id = "@neurogta"
 client: TikTokLiveClient = TikTokLiveClient(unique_id=id)
 
 user_likes = {}
+likes_for_action = 200
 
 likes_treshold = 3000
 total_likes = 0
 last_total_likes = 0
 first_like = True
+
+gift_switch = {
+    "Rose": lambda: add_interaction(db, "gift", "Rose"),
+    "Rosa": lambda: add_interaction(db, "gift", "Rose"),
+    "Heart Me": lambda: add_interaction(db, "gift", "Fire"),
+    "Fire": lambda: add_interaction(db, "gift", "Fire")
+}
 
 # Listen to an event with a decorator!
 @client.on(ConnectEvent)
@@ -52,17 +60,18 @@ async def on_gift(event: GiftEvent):
     # Can have a streak and streak is over
     if event.gift.streakable and not event.streaking:
         print(f"{event.user.unique_id} sent {event.repeat_count}x \"{event.gift.name}\"")
-        if event.gift.name == "Rose" or event.gift.name == "Rosa":
-            await add_interaction(db, "gift", "Rose")
+        if event.gift.name in gift_switch:
+            await gift_switch[event.gift.name]()
 
     # Cannot have a streak
     elif not event.gift.streakable:
         print(f"{event.user.unique_id} sent \"{event.gift.name}\"")
-        if event.gift.name == "Rose" or event.gift.name == "Rosa":
-            await add_interaction(db, "gift", "Rose")
+        if event.gift.name in gift_switch:
+            await gift_switch[event.gift.name]()
 
 @client.on(LikeEvent)
 async def on_like(event: LikeEvent):
+    #Салюты каждые likes_treshold лайков
     global first_like, last_total_likes, total_likes, likes_treshold
 
     if first_like:
@@ -77,15 +86,22 @@ async def on_like(event: LikeEvent):
         likes = await format_number(total_likes)
         print(f"{likes} лайков")
         await add_interaction(db, "likes", likes)
-    # global user_likes
-    
-    # user_id = event.user.unique_id
 
-    # if user_id not in user_likes:
-    #     user_likes[user_id] = {'like_count': 0}
+    #интерактив для каждого юзера 
 
-    # user_likes[user_id]['like_count'] += event.count
-    # print(f"{event.user.nickname} поставил {event.count} лайков. Всего от юзера: {user_likes[user_id]['like_count']}.  Общее количество: {event.total}")
+    global user_likes, likes_for_action
+    user_id = event.user.unique_id
+
+    if user_id not in user_likes:
+        user_likes[user_id] = {'like_count': 0}
+
+    user_likes[user_id]['like_count'] += event.count
+    print(f"{event.user.nickname} поставил {event.count} лайков. Всего от юзера: {user_likes[user_id]['like_count']}")
+
+    if user_likes[user_id]['like_count'] >= likes_for_action:
+        print(f"Юзер {event.user.nickname} поставил нужное кол-во лайков ({user_likes[user_id]['like_count']})")
+        user_likes[user_id]['like_count'] = 0
+        await add_interaction(db, "donater", event.user.nickname)
 
 if __name__ == '__main__':
     # Run the client and block the main thread
