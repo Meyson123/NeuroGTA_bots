@@ -10,6 +10,7 @@ basedir = 'N:\AI-Stream-Kit\Stream-Kit\\'
 
 def tgbot():
     subprocess.Popen(['start', 'python', 'Bots/TelegramBot.py'], shell=True)
+    subprocess.Popen(['start', 'python', 'Bots/TelegramSubscribeBot.py'], shell=True)
     print('Бот Телеграмм запущен')
 
 

@@ -1,16 +1,8 @@
-import logging
 from telegram import Update
 from telegram.ext import Application, CommandHandler, MessageHandler, filters, ContextTypes
 
 # Замените 'YOUR_TOKEN_HERE' на токен вашего бота
-TOKEN = '7341349790:AAE808M6j_77uNA0pYPK355Y4tUlwzS6gzM'
-
-# Включите логирование
-logging.basicConfig(
-    format='%(asctime)s - %(name)s - %(levellevel)s - %(message)s', level=logging.INFO
-)
-
-logger = logging.getLogger(__name__)
+TOKEN = '7310337883:AAFXt0iCfwznsnAvEK-Gc-98rxo8QrwwcKU'
 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     await update.message.reply_text('Бот активен и готов назначать администраторов пустышек!')
@@ -44,11 +36,15 @@ async def new_member(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None
                 can_pin_messages=False,
                 can_manage_topics=False
             )
-            await update.message.reply_text(f'{member.full_name} теперь администратор без прав!')
+            username = "!"
+            if member.username is not None:
+                username = f", @{member.username}!"
+            await update.message.reply_text(f'Привет{username} 👋\nСпасибо за подписку, будь как дома в нашем уютном чатике!🏡\n\nВсе преимущества твоей подписки уже тебе доступны!🎉')
         except Exception as e:
             await update.message.reply_text(f'Не удалось выдать админские права {member.full_name}: {e}')
 
 def main() -> None:
+    print("Бот помощник тг")
     application = Application.builder().token(TOKEN).build()
 
     application.add_handler(CommandHandler("start", start))
