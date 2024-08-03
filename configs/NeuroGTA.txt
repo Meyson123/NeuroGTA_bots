@@ -23,6 +23,11 @@ TopicDelay = 300
 TopicDelayTg = 600
 MashupDelay = 60
 
+SubsUpTopicDelay = 600
+SubsUpTopicCount = 3
+UrlPlatinum = 'https://t.me/tribute/app?startapp=sbYw'
+UrlLegendary = 'https://t.me/tribute/app?startapp=scqu'
+
 NeedTopicDelay = True
 NeedMashupDelay = True
 NeedMashupDelayPerUser = False
@@ -37,6 +42,8 @@ MashupsChatName = "💥заказать-мэшап"
 
 AdminNames = ['pryanik26', 'meyson420']
 AdminTgIds = [1484475666, 709479935, -1002175092872]
+SubsChatsIDs = [-1002246167622, -1002245397679]
+SubChat = [-4263371994]
 ChanelToSubscribeID = '@neurogta'
 
 #Donat config

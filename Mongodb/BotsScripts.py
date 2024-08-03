@@ -5,8 +5,6 @@ from myConfig import mongodb_address, default_style
 import re
 from fuzzywuzzy import fuzz
 from bson import ObjectId
-from http.server import BaseHTTPRequestHandler, HTTPServer
-import json
 
 ban_words = [
     'дети', 'детей', 'детям', 'детьми', 'детях',
@@ -25,6 +23,7 @@ ban_words = [
     'украинскую', 'украинской', 'детскую', 'детской', 'геноцид', 'геноцида', 'геноциду', 'геноцидом', 'геноциде',
     'евреев', 'еврею', 'евреем', 'еврей', 'ислам', 'ислама', 'исламу', 'исламом', 'исламе', 'детишки', 'детишек', 
     'детишкам', 'детишками', 'детишках', 'Навальный', 'Навального', 'Навальному', 'Навальным', 'Навальном', 'зигу', 'зига']
+
 
 async def add_topic(db, requestor_name,user_tag,requestor_id, source, priority, topic, style):
     while True:
@@ -49,6 +48,7 @@ async def add_topic(db, requestor_name,user_tag,requestor_id, source, priority, 
             print(e)
             time.sleep(1)
     pass
+
 
 async def add_interaction(db, action, parameter):
     while True:
@@ -100,6 +100,7 @@ async def filt(topic):
                 return True
     return False
 
+
 async def check_topic_style(topic):
     pattern = r'! ?стиль (.+)'
     match = re.search(pattern, topic, re.IGNORECASE)
@@ -109,6 +110,7 @@ async def check_topic_style(topic):
     else:
         style_content = default_style
     return topic, style_content
+
 
 async def check_topic_exists(db, topic, threshold):
     collection = db['suggested_topics']
@@ -138,6 +140,8 @@ async def delete_theme(db, topic_id):
 async def up_theme(db, topic_id):
     collection = db['suggested_topics']
     document = collection.update_one({'_id': ObjectId(topic_id)}, {'$inc': {'priority': 1}})
+
+
 def connect_to_mongodb():
     while True:
         try:
@@ -148,6 +152,7 @@ def connect_to_mongodb():
             print(f"Ошибка установки соединения с mongodb. Продолжаем повторные попытки подключения...")
             print(e)
             time.sleep(1)
+
 
 async def search_number(topic_id, db):
     suggested = db["suggested_topics"]
@@ -183,8 +188,6 @@ async def get_topic_by_user(id, db):
     return list(generated.find({'requestor_id':id})) + list(suggested.find({'requestor_id':id}))
 
 
-
-
 async def get_parameters_by_topic_id(db, topic_id, *parameters):
     try:
         document = db["suggested_topics"].find_one({"_id": ObjectId(topic_id)})
@@ -197,7 +200,8 @@ async def get_parameters_by_topic_id(db, topic_id, *parameters):
     except pymongo.errors.PyMongoError as e:
         print(f"Ошибка при поиске информации по _id '{topic_id}' в коллекции 'suggested_topics': {e}")
         return None
-    
+
+
 async def get_id_by_theme_number(db,number):
     document = db['generated_topics'].find().skip(number).limit(1)
     if document:
@@ -207,6 +211,7 @@ async def get_id_by_theme_number(db,number):
                 return id
             return 0
     return 0
+
 
 def replace_name(name, replacements):
     for old, new in replacements:

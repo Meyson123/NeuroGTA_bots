@@ -97,8 +97,8 @@ async def new_donation(event):
                 
                 message, style_content = await check_topic_style(message)
 
-                topic_id = await add_topic(db, requestor_name, "", requestor_id, source, 2, message, style_content)
-                await send_topic_to_telegram(message, style_content, requestor_name, requestor_id, source, 2, str(topic_id), False)
+                topic_id = await add_topic(db, requestor_name, "", requestor_id, source, 3, message, style_content)
+                await send_topic_to_telegram(message, style_content, requestor_name, requestor_id, source, 3, str(topic_id), False)
 
             if FinalAmount >= DonatedMashupSumRub and DonatEnableMashups:
                 print('Мэшап задоначен')

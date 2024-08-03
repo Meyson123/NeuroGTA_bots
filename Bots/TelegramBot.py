@@ -7,7 +7,8 @@ from dotenv import load_dotenv
 from telebot.async_telebot import AsyncTeleBot, types
 from telebot.types import InlineKeyboardMarkup,InlineKeyboardButton
 from myConfig import AdminTgIds, ChanelToSubscribeID, NeedTopicDelay, TopicDelayTg, TopicPriority, \
-    default_topic_suggest_message,threshold, MaxLengthTG, DonatedTopicSumRub, SubsLvl1ChatID
+    default_topic_suggest_message,threshold, MaxLengthTG, DonatedTopicSumRub, SubsChatsIDs, \
+    SubsUpTopicCount, SubsUpTopicDelay, UrlPlatinum, UrlLegendary
 from Mongodb.CountScripts import warnings_by_user,add_count, sort_counter,add_warning,block_user,search_nick
 from Mongodb.BotsScripts import add_topic,connect_to_mongodb,filt,delete_theme,search_number,\
     get_topic_by_user,check_topic_exists, check_topic_style, get_members_id,\
@@ -18,6 +19,7 @@ load_dotenv()
 bot = AsyncTeleBot(os.getenv('TOKENTG'))
 mode = 'on'
 last_topic_time = {}
+subs_data = {}
 # Функция подключения к mongodb
 db = connect_to_mongodb()
 source = 'Telegram'
@@ -33,26 +35,34 @@ async def telegram_webhook():
     text = data.get('text')
     if text: 
         if (id_3 := await get_id_by_theme_number(db, 2)):
-            await send_notification(SubsLvl1ChatID, id_3, 3)
+            if await check_for_admin(SubsChatsIDs[0], id_3) or await check_for_admin(SubsChatsIDs[1], id_3): 
+                await send_notification(id_3, 3)
         if (id_1 := await get_id_by_theme_number(db, 0)):
-            await send_notification(SubsLvl1ChatID, id_1, 1)
+            if await check_for_admin(SubsChatsIDs[0], id_1) or await check_for_admin(SubsChatsIDs[1], id_1):
+                await send_notification(id_1, 1)
         #print(text, notification_id)
         return {'status': 'success'}
     else:
         return {'status': 'failed'}, 400
 
-async def send_notification(chat_id, admin_id, position):
+async def check_for_admin(chat_id, admin_id):
     try:
         admins = await bot.get_chat_administrators(chat_id)
         for admin in admins:
-            if admin.user.id == admin_id:
-                if position == 1:
-                    text = 'Твоя тема будет прямо сейчас! [(СТРИМ ТУТ)](https://www.tiktok.com/@neurogta/live)'
-                else:
-                    text = 'Твоя тема скоро будет в эфире! Номер в очереди: 3'
-                await bot.send_message(admin_id, text, parse_mode='Markdown')
-                return None
-        return None
+            if str(admin.user.id) == str(admin_id):
+                return True
+        return False
+    except Exception as e:
+        print(f"Произошла ошибка: {e}")
+        return False
+
+async def send_notification(admin_id, position):
+    try:
+        if position == 1:
+            text = '🔔Твоя тема будет прямо сейчас! [(СТРИМ ТУТ)](https://www.tiktok.com/@neurogta/live)'
+        else:
+            text = '⏰Твоя тема скоро будет в эфире! Номер в очереди: 3'
+        await bot.send_message(admin_id, text, parse_mode='Markdown')
     except Exception as e:
         print(f"Произошла ошибка: {e}")
         return None
@@ -151,8 +161,10 @@ async def topic(message):
     try:
         chat_member = await bot.get_chat_member(ChanelToSubscribeID, message.from_user.id)
         if chat_member.status not in ['member', 'administrator', 'creator']:
+            keyboard = InlineKeyboardMarkup()
+            keyboard.add(InlineKeyboardButton(text="Подписаться", url=f"https://t.me/{ChanelToSubscribeID[1:]}"))
             await bot.send_message(message.chat.id, "Пожалуйста, подпишитесь на наш канал, чтобы задавать темы\n"
-                                                    f"https://t.me/{ChanelToSubscribeID[1:]}")
+                                                    f"https://t.me/{ChanelToSubscribeID[1:]}", reply_markup=keyboard)
             return
     except Exception as e:
         await bot.send_message(message.chat.id, f"Произошла ошибка: {e}")
@@ -253,12 +265,12 @@ async def topic(message):
 Источник: {source}
 Приоритет: {TopicPriority}''',reply_markup=markup)
     markup2 = InlineKeyboardMarkup()
-    markup2.add(InlineKeyboardButton('⬆️ Отправить тему без очереди',callback_data= f'up|&|{requestor_id}|&|{topic_id}'))
-    markup2.add(InlineKeyboardButton('🔊 Включить уведомление',callback_data= f'notice|&|{requestor_id}|&|{topic_id}'))
+    markup2.add(InlineKeyboardButton('⬆️ Отправить тему без очереди',callback_data= f'up-user|&|{requestor_id}|&|{topic_id}'))
+    markup2.add(InlineKeyboardButton('🔊 Уведомление о начале темы',callback_data= f'notice|&|{requestor_id}|&|{topic_id}'))
     await bot.reply_to(message, text=default_topic_suggest_message + f'\nТвоя позиция в очереди: {await search_number(topic_id,db)}\n\nЧтобы посмотреть свою текущую позицию в очереди, используй команду:\n/queue',reply_markup = markup2)
     await add_count(requestor_name, source, str(requestor_id))
     await sort_counter()
-    await bot.send_message(message.chat.id,'Хочешь получить уведомление,когда придет время твоей темы? \n➡️️ Пиши /subscribe')
+    #await bot.send_message(message.chat.id,'Хочешь получить уведомление,когда придет время твоей темы? \n➡️️ Пиши /subscribe')
     last_topic_time[requestor_id] = time.time()
 
 @bot.message_handler(commands=['ban_themes'])
@@ -287,11 +299,33 @@ async def queue(message):
         k += 1
     if spisok == '':
         spisok = 'Пока у тебя нет тем в очереди.'
-    await bot.send_message(message.chat.id,f'{spisok}\n\nP.S. Если до твоей темы далеко - за {DonatedTopicSumRub}₽ можно заказать тему без очереди!\nhttps://www.donationalerts.com/r/neuro_gta 💖')
+    await bot.send_message(message.chat.id,f'{spisok}\n\nP.S. Если до твоей темы далеко - за {DonatedTopicSumRub}₽ можно заказать тему без очереди!\nhttps://www.donationalerts.com/r/neuro_gta 💖\n\nP.P.S А чтобы получать уведомления о начале своей темы и запускать темы без очереди прямо в телеграме - напиши /subscribe 😍')
     #await bot.send_message(message.chat.id,spisok)
+
 @bot.message_handler(commands=['subscribe'])
 async def subscribe(message):
-    await bot.send_message(message.chat.id,'Услуга пока недоступна')
+    markup = InlineKeyboardMarkup()
+    markup.add(InlineKeyboardButton(text="PLATINUM", url=UrlPlatinum))
+    markup.add(InlineKeyboardButton(text="LEGENDARY", url=UrlLegendary))
+    #await bot.send_message(message.chat.id, "Выберите желаемый уровень подписки", reply_markup=markup)
+    await bot.send_message(message.chat.id, 
+f'''Доступные варианты подписки и их преимущества на данный момент:
+
+*💎PLATINUM* 
+- получение уведомления, когда ваша тема 3 в очереди🔔
+- получение уведомления, когда ваша тема начинается🔔
+
+*👑LEGENDARY* 
+- все преимущества подписки PLATINUM
+- возможность на каждом стриме задать {SubsUpTopicCount} тем(ы) без очереди🚀
+
+✨На каждом уровне подписки имеется свой чат, так что кроме описанных выше преимуществ вы получите уникальный контент и возможность взаимодействия с авторами проекта Нейро GTA!✨
+
+_Подписка оформляется через официальное приложение телеграм Tribute, все данные защищены🔒_
+
+*ВЫБЕРИТЕ ЖЕЛАЕМЫЙ УРОВЕНЬ:*
+''', parse_mode="Markdown", reply_markup=markup)
+                       
 @bot.callback_query_handler(func=lambda call: True)
 async def del_theme(call):
     calldata = call.data.split('|&|')
@@ -317,7 +351,30 @@ async def del_theme(call):
     elif but == 'up':
         await up_theme(db,topic_id)
         await bot.reply_to(call.message,'Приоритет темы повышен.')
+    elif but == 'up-user':
+        if await check_for_admin(SubsChatsIDs[1], user_id):
+            if user_id in subs_data:
+                if time.time() - subs_data[user_id]['last_time'] < SubsUpTopicDelay:
+                    await bot.send_message(user_id, f'⏰Отправлять тему без очереди можно раз в {int(SubsUpTopicDelay/60)} минут.')
+                elif subs_data[user_id]['count'] >= SubsUpTopicCount:
+                    await bot.send_message(user_id, f'😔Лимит тем без очереди на этом стриме исчерпан. Каждый стрим вы можете отправить столько тем без очереди: {SubsUpTopicCount}')
+                else:
+                    subs_data[user_id]['count']+=1
+                    subs_data[user_id]['last_time'] = time.time()
+                    await up_theme(db,topic_id)
+                    await bot.send_message(user_id, f'🚀Тема отправлена без очереди!')
+            else:
+                subs_data[user_id] = {'last_time': time.time(), 'count': 1}
+                await up_theme(db,topic_id)
+                await bot.send_message(user_id, f'🚀Тема отправлена без очереди!')
+        else:
+            await bot.send_message(user_id, '🔒Данная функция доступна только подписчикам уровня *"LEGENDARY"*\nОформить подписку: /subscribe', parse_mode="Markdown")
+        pass
     elif but == 'notice':
+        if await check_for_admin(SubsChatsIDs[1], user_id) or await check_for_admin(SubsChatsIDs[0], user_id):
+            await bot.send_message(user_id, f'✅Вы уже являетесь подписчиком. Уведомления включены')
+        else:
+           await bot.send_message(user_id, '🔒Данная функция доступна только подписчикам уровня *"PLATINUM"* и *"LEGENDARY"*\nОформить подписку: /subscribe', parse_mode="Markdown") 
         pass
 
 @bot.message_handler(commands='off')
