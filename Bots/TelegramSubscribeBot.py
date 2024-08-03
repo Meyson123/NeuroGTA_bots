@@ -4,9 +4,6 @@ from telegram.ext import Application, CommandHandler, MessageHandler, filters, C
 # Замените 'YOUR_TOKEN_HERE' на токен вашего бота
 TOKEN = '7310337883:AAFXt0iCfwznsnAvEK-Gc-98rxo8QrwwcKU'
 
-async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    await update.message.reply_text('Бот активен и готов назначать администраторов пустышек!')
-
 async def new_member(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     for member in update.message.new_chat_members:
         try:
@@ -47,7 +44,6 @@ def main() -> None:
     print("Бот помощник тг")
     application = Application.builder().token(TOKEN).build()
 
-    application.add_handler(CommandHandler("start", start))
     application.add_handler(MessageHandler(filters.StatusUpdate.NEW_CHAT_MEMBERS, new_member))
 
     application.run_polling()

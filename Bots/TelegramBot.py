@@ -265,8 +265,8 @@ async def topic(message):
 Источник: {source}
 Приоритет: {TopicPriority}''',reply_markup=markup)
     markup2 = InlineKeyboardMarkup()
-    markup2.add(InlineKeyboardButton('⬆️ Отправить тему без очереди',callback_data= f'up-user|&|{requestor_id}|&|{topic_id}'))
-    markup2.add(InlineKeyboardButton('🔊 Уведомление о начале темы',callback_data= f'notice|&|{requestor_id}|&|{topic_id}'))
+    markup2.add(InlineKeyboardButton('🚀 Отправить тему без очереди',callback_data= f'up-user|&|{requestor_id}|&|{topic_id}'))
+    markup2.add(InlineKeyboardButton('🔔 Уведомление о начале темы',callback_data= f'notice|&|{requestor_id}|&|{topic_id}'))
     await bot.reply_to(message, text=default_topic_suggest_message + f'\nТвоя позиция в очереди: {await search_number(topic_id,db)}\n\nЧтобы посмотреть свою текущую позицию в очереди, используй команду:\n/queue',reply_markup = markup2)
     await add_count(requestor_name, source, str(requestor_id))
     await sort_counter()
@@ -386,7 +386,7 @@ async def off(message):
 
 @bot.message_handler()
 async def send_text(message):
-    if not(message.chat.id in AdminTgIds):
+    if not(message.chat.id in AdminTgIds) and not(message.chat.id in SubsChatsIDs):
         if mode == 'on':
            await bot.send_message(message.chat.id, "Бро, задай тему с помощью команды /topic, или посмотри подробности с помощью /help")
         else:
