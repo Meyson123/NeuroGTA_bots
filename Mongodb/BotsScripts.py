@@ -36,6 +36,7 @@ async def add_topic(db, requestor_name,user_tag,requestor_id, source, priority, 
                 "requestor_id": requestor_id,
                 "source": source,
                 "priority": priority,
+                "additionally": "",
                 "topic": topic
             }
 
@@ -90,6 +91,25 @@ async def add_mashup(db, requestor_name,requestor_id, source, priority, speaker,
             print(f"Ошибка добавления записи в generated_topics. Продолжаем повторные попытки отправки запроса...")
             print(e)
             time.sleep(1)
+
+
+async def edit_topic(db, message):
+    topic, style = await check_topic_style(message)
+    col = db["suggested_topics"]
+    doc = col.find_one()
+
+    if topic == "":
+        topic = doc["topic"]
+    if style == default_style and doc["style"] != default_style:
+        style = doc["style"]
+
+    id = doc["_id"]
+    result = col.update_one(
+        {"_id": id},
+        {'$set': {'topic': topic, 'style': style}}
+    )
+    return result.modified_count > 0
+    
 
 
 async def filt(topic):

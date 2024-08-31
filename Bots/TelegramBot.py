@@ -11,7 +11,7 @@ from myConfig import AdminTgIds, ChanelToSubscribeID, NeedTopicDelay, TopicDelay
     SubsUpTopicCount, SubsUpTopicDelay, UrlPlatinum, UrlLegendary
 from Mongodb.CountScripts import warnings_by_user,add_count, sort_counter,add_warning,block_user,search_nick
 from Mongodb.BotsScripts import add_topic,connect_to_mongodb,filt,delete_theme,search_number,\
-    get_topic_by_user,check_topic_exists, check_topic_style, get_members_id,\
+    get_topic_by_user,check_topic_exists, check_topic_style, get_members_id, edit_topic,\
     up_theme, add_interaction, get_parameters_by_topic_id,get_id_by_theme_number
 from quart import Quart, request
 
@@ -27,24 +27,53 @@ source = 'Telegram'
 users_good = 0
 users_bad = 0
 
-# Получение запроса от Node JS
+user_responses = {}
+last_id = ''
+
+#Сервер вебхуков
 app = Quart(__name__)
 @app.route('/telegram-webhook', methods=['POST'])
 async def telegram_webhook():
     data = await request.json
-    text = data.get('text')
-    if text: 
-        if (id_3 := await get_id_by_theme_number(db, 2)):
-            if await check_for_admin(SubsChatsIDs[0], id_3) or await check_for_admin(SubsChatsIDs[1], id_3): 
-                await send_notification(id_3, 3)
-        if (id_1 := await get_id_by_theme_number(db, 0)):
-            if await check_for_admin(SubsChatsIDs[0], id_1) or await check_for_admin(SubsChatsIDs[1], id_1):
-                await send_notification(id_1, 1)
-        #print(text, notification_id)
-        return {'status': 'success'}
-    else:
-        return {'status': 'failed'}, 400
+    action = data.get('action')
+    match action:
+        case "CheckQueue":
+            if (id_3 := await get_id_by_theme_number(db, 2)):
+                if await check_for_admin(SubsChatsIDs[0], id_3) or await check_for_admin(SubsChatsIDs[1], id_3): 
+                    await send_notification(id_3, 3)
+            if (id_1 := await get_id_by_theme_number(db, 0)):
+                if await check_for_admin(SubsChatsIDs[0], id_1) or await check_for_admin(SubsChatsIDs[1], id_1):
+                    await send_notification(id_1, 1)
+            #print(text, notification_id)
+            return {'status': 'success'}
+        case "MashupError":
+            await bot.send_message(AdminTgIds[1], "❗️Ошибка при создании мэшапа, загляни в компуктер!!!")
+            return {'status': 'success'}
+        case "TopicError":
+            await bot.send_message(AdminTgIds[1], "❗️Ошибка при создании темы, загляни в компуктер!!!")
+            return {'status': 'success'}
+        case "Waiting":
+            text = data.get('text')
+            full_text = "\n\n".join(f"{line['character']}: {line['dialogue']}" for line in text)
+            
+            keyboard = InlineKeyboardMarkup()
+            keyboard.add(
+            InlineKeyboardButton("Заебись👍", callback_data='good'),
+            InlineKeyboardButton("Хуево👎", callback_data='bad'))
+            keyboard.add(InlineKeyboardButton("Изменить тему/стиль🔄", callback_data='edit'))
 
+            message = await bot.send_message(AdminTgIds[1], full_text, reply_markup=keyboard)
+            user_responses[message.message_id] = None
+            while user_responses[message.message_id] not in ["good", "bad"]:
+                await asyncio.sleep(1)
+            if user_responses[message.message_id] == 'good':
+                return {'status': 'success'}
+            else:
+                return {'status': 'failed'}, 400
+            
+    return {'status': 'failed'}, 400
+
+#region Доп Функции
 async def check_for_admin(chat_id, admin_id):
     try:
         admins = await bot.get_chat_administrators(chat_id)
@@ -67,7 +96,6 @@ async def send_notification(admin_id, position):
         print(f"Произошла ошибка: {e}")
         return None
 
-
 async def send_message_to_user(user_id, message):
     global users_bad, users_good
     try:
@@ -78,7 +106,9 @@ async def send_message_to_user(user_id, message):
         print(f"Ошибка при отправке сообщения пользователю с ID {user_id}: {e}")
         users_bad += 1
 
+#endregion
 
+#region Базовые команды
 @bot.message_handler(commands=['spam'])
 async def spam(message):
     if not(message.chat.id in AdminTgIds):
@@ -120,15 +150,6 @@ async def save(message):
     await add_interaction(db, "save", "")
     await bot.send_message(message.chat.id, f"История сохранена")
 
-@bot.message_handler(commands=['test'])
-async def test(message):
-    if not(message.chat.id in AdminTgIds):
-        return
-    link = "[СТРИМ](https://www.tiktok.com/@neurogta/live)"
-    await bot.send_message(AdminTgIds[1], link, parse_mode='Markdown')
-
-
-
 @bot.message_handler(commands=['start'])
 async def start(message):
     await bot.send_message(message.chat.id, 'Wassup, nigga🖐️\n'
@@ -139,8 +160,6 @@ async def start(message):
                                             '/queue - Посмотреть свою очередь\n\n'
                                             f'За {DonatedTopicSumRub}₽ можно заказать тему без очереди!\nhttps://www.donationalerts.com/r/neuro_gta')
 
-
-# Сообщение с информацией
 @bot.message_handler(commands=['help'])
 async def help_message(message):
     await bot.send_message(message.chat.id, 'Все до жути просто, братан. Просто пиши команду "/topic", а дальше свою тему 😊\n\n'
@@ -154,8 +173,6 @@ async def help_message(message):
                                             "P.S.S Заказать тему без очереди (и просто оказать поддержку) можно здесь:\n"
                                             'https://www.donationalerts.com/r/neuro_gta 💖')
 
-
-# Передача тем от бота
 @bot.message_handler(commands=['topic'])
 async def topic(message):
     try:
@@ -305,8 +322,8 @@ async def queue(message):
 @bot.message_handler(commands=['subscribe'])
 async def subscribe(message):
     markup = InlineKeyboardMarkup()
-    markup.add(InlineKeyboardButton(text="PLATINUM", url=UrlPlatinum))
-    markup.add(InlineKeyboardButton(text="LEGENDARY", url=UrlLegendary))
+    markup.add(InlineKeyboardButton(text="💎PLATINUM💎", url=UrlPlatinum))
+    markup.add(InlineKeyboardButton(text="👑LEGENDARY👑", url=UrlLegendary))
     #await bot.send_message(message.chat.id, "Выберите желаемый уровень подписки", reply_markup=markup)
     await bot.send_message(message.chat.id, 
 f'''Доступные варианты подписки и их преимущества на данный момент:
@@ -327,7 +344,21 @@ _Подписка оформляется через официальное пр�
 ''', parse_mode="Markdown", reply_markup=markup)
                        
 @bot.callback_query_handler(func=lambda call: True)
-async def del_theme(call):
+async def callbacks(call):
+    if call.data in ["good", "bad", "edit"]:
+        user_responses[call.message.message_id] = call.data
+        match call.data:
+            case 'bad':
+                await bot.delete_message(call.message.chat.id, call.message.message_id)
+            case 'good':
+                await bot.edit_message_reply_markup(call.message.chat.id, call.message.message_id, reply_markup=None)
+            case 'edit':
+                await bot.send_message(call.message.chat.id, "Напиши новую тему и/или стиль")
+                global mode, last_id
+                mode = 'edit'
+                last_id = call.message.message_id
+        return
+    
     calldata = call.data.split('|&|')
     but = calldata[0]
     user_id = calldata[1]
@@ -384,24 +415,43 @@ async def off(message):
     global mode
     mode = 'off'
 
+@bot.message_handler(commands='edit')
+async def edit(message):
+    if not(message.chat.id in AdminTgIds):
+        return
+    await try_edit_topic(message.chat.id, message.text[6:])
+    
+  
 @bot.message_handler()
 async def send_text(message):
+    global mode, last_id
+    if message.chat.id in AdminTgIds:
+        if mode == 'edit':
+            await try_edit_topic(message.chat.id, message.text)
+            user_responses[last_id] = "bad"
+            mode = "on"
     if not(message.chat.id in AdminTgIds) and not(message.chat.id in SubsChatsIDs):
         if mode == 'on':
            await bot.send_message(message.chat.id, "Бро, задай тему с помощью команды /topic, или посмотри подробности с помощью /help")
-        else:
+        if mode == 'off':
             await bot.send_message(message.chat.id,'Сожалеем,но прием тем на этом стриме уже завершен, ждем ваши темы на следующем.\n    - с любовью,Meyson\n\nPs. Темы все еще можно задавать за донат(без очереди) https://www.donationalerts.com/r/neuro_gta')
             await bot.send_sticker(message.chat.id,'CAACAgIAAxkBAAEMZ-JmgY_WuGvpBWdSmJ99nMQgy7qMqQACBxkAAs0xEEghvxdEJ73qJDUE')
+        
+async def try_edit_topic(chat_id, message):
+    if await edit_topic(db, message):
+        await bot.send_message(chat_id, "Изменения применены")
+    else:
+        await bot.send_message(chat_id, "Не удалось применить изменения")
 
+
+#endregion
 
 print('Запуск ТГ бота...')
-
-
 
 async def main():
     # Запуск сервера Quart
     await asyncio.gather(
-        app.run_task(port=3000),  # Запуск сервера Quart в фоновом режиме
+        app.run_task(port=4000),  # Запуск сервера Quart в фоновом режиме
         bot.polling(non_stop=True, skip_pending=True)  # Запуск бота
     )
 

@@ -53,6 +53,26 @@ async def new_donation(event):
         requestor_name = f'Донатер {user}'
 
         if currency == 'RUB':
+            
+            if FinalAmount >= DonatedMashupSumRub and DonatEnableMashups:
+                print('Мэшап задоначен')
+
+                if not message.startswith('!мэшап'):
+                    print('Некорректный запрос мэшапа!')
+                    return
+
+                mashup = message.split("!мэшап ", 1)[1]
+                requestor = f'Донатер {user}'
+
+                if mashup and " " in mashup:
+                    speaker, url = mashup.split(" ", 1)
+                    if speaker in valid_speakers:
+                        eng_speaker = replace_name(speaker, replacements)
+                        await add_mashup(db, requestor, donated_id, source, 3, eng_speaker, url)
+                    else:
+                        print("ОШИБКА! НЕОБХОДИМО РУЧНОЕ ДОБАВЛЕНИЕ")
+                else:
+                    print("ОШИБКА! НЕОБХОДИМО РУЧНОЕ ДОБАВЛЕНИЕ")
 
             if FinalAmount == DonatedInteractionOneSumRub and DonatEnableInteractionOne:
                 print('Интерактив 1')
@@ -99,26 +119,6 @@ async def new_donation(event):
 
                 topic_id = await add_topic(db, requestor_name, "", requestor_id, source, 3, message, style_content)
                 await send_topic_to_telegram(message, style_content, requestor_name, requestor_id, source, 3, str(topic_id), False)
-
-            if FinalAmount >= DonatedMashupSumRub and DonatEnableMashups:
-                print('Мэшап задоначен')
-
-                if not message.startswith('!мэшап'):
-                    print('Некорректный запрос мэшапа!')
-                    return
-
-                mashup = message.split("!мэшап ", 1)[1]
-                requestor = f'Донатер {user}'
-
-                if mashup and " " in mashup:
-                    speaker, url = mashup.split(" ", 1)
-                    if speaker in valid_speakers:
-                        eng_speaker = replace_name(speaker, replacements)
-                        await add_mashup(db, requestor, source, 2, eng_speaker, url)
-                    else:
-                        print("ОШИБКА! НЕОБХОДИМО РУЧНОЕ ДОБАВЛЕНИЕ")
-                else:
-                    print("ОШИБКА! НЕОБХОДИМО РУЧНОЕ ДОБАВЛЕНИЕ")
                     
     except KeyError as e:
         print(f"Error handling message: Missing key {e}")
