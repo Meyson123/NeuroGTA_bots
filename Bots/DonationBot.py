@@ -74,7 +74,27 @@ async def new_donation(event):
                 else:
                     print("ОШИБКА! НЕОБХОДИМО РУЧНОЕ ДОБАВЛЕНИЕ")
 
-            if FinalAmount == DonatedInteractionOneSumRub and DonatEnableInteractionOne:
+
+            elif FinalAmount >= DonatedTopicSumRub and DonatEnableTopics:
+                print('Тема задоначена')
+                
+                if message == "":
+                    return
+                
+                if message.lower().startswith("/тема"):
+                    message = message[6:]
+
+                if await filt(message):
+                    await send_filter_error(message, requestor_name, requestor_id, source, 0, False)
+                    return
+                
+                message, style_content = await check_topic_style(message)
+
+                topic_id = await add_topic(db, requestor_name, "", requestor_id, source, 3, message, style_content)
+                await send_topic_to_telegram(message, style_content, requestor_name, requestor_id, source, 3, str(topic_id), False)
+
+            
+            elif FinalAmount == DonatedInteractionOneSumRub and DonatEnableInteractionOne:
                 print('Интерактив 1')
                 if message.lower().startswith("/бандит"):
                     if await filt(user):
@@ -98,28 +118,7 @@ async def new_donation(event):
                             parameter = f"{name1} {name2}"
                     await add_interaction(db, "fight", parameter)
 
-            # if FinalAmount == DonatedInteractionTwoSumRub and DonatEnableInteractionTwo:
-            #     print('Интерактив 2')
-            #     await add_interaction(db, "location", "")
 
-            if FinalAmount >= DonatedTopicSumRub and DonatEnableTopics:
-                print('Тема задоначена')
-                
-                if message == "":
-                    return
-                
-                if message.lower().startswith("/тема"):
-                    message = message[6:]
-
-                if await filt(message):
-                    await send_filter_error(message, requestor_name, requestor_id, source, 0, False)
-                    return
-                
-                message, style_content = await check_topic_style(message)
-
-                topic_id = await add_topic(db, requestor_name, "", requestor_id, source, 3, message, style_content)
-                await send_topic_to_telegram(message, style_content, requestor_name, requestor_id, source, 3, str(topic_id), False)
-                    
     except KeyError as e:
         print(f"Error handling message: Missing key {e}")
     except Exception as e:
