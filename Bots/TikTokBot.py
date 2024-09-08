@@ -1,13 +1,14 @@
 from TikTokLive import TikTokLiveClient
 from TikTokLive.client.logger import LogLevel
-from TikTokLive.events import ConnectEvent, DisconnectEvent, CommentEvent, GiftEvent, LikeEvent
+from TikTokLive.events import ConnectEvent, DisconnectEvent, CommentEvent, GiftEvent, LikeEvent, LiveEndEvent, LivePauseEvent, SubscribeEvent
 import sys
 import os
 import asyncio
-import time
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 from Mongodb.BotsScripts import connect_to_mongodb, add_interaction
 from Mongodb.CountScripts import format_number
+from TelegramSender import sending_to_tg
+from PrintColored import print_colored
 
 db = connect_to_mongodb()
 id = "@neurogta"
@@ -49,10 +50,24 @@ async def reconnect():
         print(f"Reconnection failed: {e}. Retrying...")
         await reconnect()  # Retry reconnecting
 
+@client.on(LiveEndEvent)
+async def on_comment(event: LikeEvent) -> None:
+    print(f"Стрим завершен / ошибка")
+    await sending_to_tg(text="❗️ТТ СТРИМ ЗАВЕРШИЛСЯ❗️")
+
+@client.on(LivePauseEvent)
+async def on_comment(event: LivePauseEvent) -> None:
+    print(f"Стрим на паузе / ошибка")
+    await sending_to_tg(text="❗️ТТ СТРИМ НА ПАУЗЕ❗️")
+    
 
 @client.on(CommentEvent)
 async def on_comment(event: CommentEvent) -> None:
     print(f"{event.user.nickname} -> {event.comment}")
+
+@client.on(SubscribeEvent)
+async def on_comment(event: SubscribeEvent) -> None:
+    print_colored(f"{event.user.nickname} подписался!", "green")
 
 @client.on(GiftEvent)
 async def on_gift(event: GiftEvent):

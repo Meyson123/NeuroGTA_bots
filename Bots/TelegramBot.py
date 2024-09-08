@@ -30,7 +30,7 @@ users_bad = 0
 user_responses = {}
 last_id = ''
 
-#Сервер вебхуков
+#region Сервер вебхуков
 app = Quart(__name__)
 @app.route('/telegram-webhook', methods=['POST'])
 async def telegram_webhook():
@@ -47,10 +47,10 @@ async def telegram_webhook():
             #print(text, notification_id)
             return {'status': 'success'}
         case "MashupError":
-            await bot.send_message(AdminTgIds[1], "❗️Ошибка при создании мэшапа, загляни в компуктер!!!")
+            await bot.send_message(AdminTgIds[1], "❗️ОШИБКА ПРИ СОЗДАНИИ МЭШАПА❗️")
             return {'status': 'success'}
         case "TopicError":
-            await bot.send_message(AdminTgIds[1], "❗️Ошибка при создании темы, загляни в компуктер!!!")
+            await bot.send_message(AdminTgIds[1], "❗️ОШИБКА ПРИ СОЗДАНИИ ТЕМЫ❗️")
             return {'status': 'success'}
         case "Waiting":
             text = data.get('text')
@@ -72,6 +72,7 @@ async def telegram_webhook():
                 return {'status': 'failed'}, 400
             
     return {'status': 'failed'}, 400
+#endregion
 
 #region Доп Функции
 async def check_for_admin(chat_id, admin_id):
@@ -108,47 +109,7 @@ async def send_message_to_user(user_id, message):
 
 #endregion
 
-#region Базовые команды
-@bot.message_handler(commands=['spam'])
-async def spam(message):
-    if not(message.chat.id in AdminTgIds):
-        return
-    url = message.text[6:]
-    await bot.send_message(message.chat.id, 'Начинаю рассылку с приглашением на стрим!')
-    try:
-        all_id = await get_members_id(db)
-        for user_id in all_id:
-            await send_message_to_user(user_id, url)
-    except Exception as e:
-        await bot.send_message(message.chat.id, f"Произошла ошибка при рассылке: {e}")
-    await bot.send_message(message.chat.id, f'Отправлено: {users_good}. Заблокировано: {users_bad}.')
-
-@bot.message_handler(commands=['action'])
-async def add_action(message):
-    if not(message.chat.id in AdminTgIds):
-        return
-    action_parameter = message.text[8:].strip()
-    if ' ' in action_parameter:
-        action, parameter = action_parameter.split(' ', 1)
-    else:
-        action = action_parameter
-        parameter = "" 
-    await add_interaction(db, action, parameter)
-    await bot.send_message(message.chat.id, f"Действие добавлено в базу")
-
-@bot.message_handler(commands=['skip'])
-async def skip(message):
-    if not(message.chat.id in AdminTgIds):
-        return
-    await add_interaction(db, "skip", "")
-    await bot.send_message(message.chat.id, f"История скипнута")
-
-@bot.message_handler(commands=['save'])
-async def save(message):
-    if not(message.chat.id in AdminTgIds):
-        return
-    await add_interaction(db, "save", "")
-    await bot.send_message(message.chat.id, f"История сохранена")
+#region Общие команды
 
 @bot.message_handler(commands=['start'])
 async def start(message):
@@ -193,9 +154,9 @@ async def topic(message):
     user_tag = f'@{message.from_user.username}'
     warnings = await warnings_by_user(requestor_name, source, requestor_id)
     if mode == 'off':
-        await bot.send_message(message.chat.id,'Сожалеем,но прием тем на этом стриме уже завершен, ждем ваши темы на следующем.\n    - с любовью,Meyson\n\nPs. Темы все еще можно задавать за донат(без очереди) https://www.donationalerts.com/r/neuro_gta')
-        await bot.send_sticker(message.chat.id,'CAACAgIAAxkBAAEMZ-JmgY_WuGvpBWdSmJ99nMQgy7qMqQACBxkAAs0xEEghvxdEJ73qJDUE')
-        return
+        if not (await check_for_admin(SubsChatsIDs[0], requestor_id) or await check_for_admin(SubsChatsIDs[1], requestor_id)):
+            await send_off_mode_text(message)
+            return
     if warnings == 5:
         await block_user(requestor_name,requestor_id,user_tag,requestor_id)
     if await search_nick(requestor_name,'BlackList',source,requestor_id):
@@ -407,6 +368,58 @@ async def callbacks(call):
         else:
            await bot.send_message(user_id, '🔒Данная функция доступна только подписчикам уровня *"PLATINUM"* и *"LEGENDARY"*\nОформить подписку: /subscribe', parse_mode="Markdown") 
         pass
+#endregion
+
+
+#region Админ команды
+@bot.message_handler(commands=['spam'])
+async def spam(message):
+    if not(message.chat.id in AdminTgIds):
+        return
+    text = message.text[6:]
+    await bot.send_message(message.chat.id, 'Начинаю рассылку с приглашением на стрим!')
+    try:
+        all_id = await get_members_id(db)
+        for user_id in all_id:
+            await send_message_to_user(user_id, text)
+    except Exception as e:
+        await bot.send_message(message.chat.id, f"Произошла ошибка при рассылке: {e}")
+    await bot.send_message(message.chat.id, f'Отправлено: {users_good}. Заблокировано: {users_bad}.')
+
+@bot.message_handler(commands=['spam_forwarded'])
+async def spam(message):
+    if not(message.chat.id in AdminTgIds):
+        return
+    global mode
+    mode = "spam"
+    await bot.send_message(message.chat.id, "❗️Внимание, следющее сообщение будет отправлено всем подписчикам!❗️")
+
+@bot.message_handler(commands=['action'])
+async def add_action(message):
+    if not(message.chat.id in AdminTgIds):
+        return
+    action_parameter = message.text[8:].strip()
+    if ' ' in action_parameter:
+        action, parameter = action_parameter.split(' ', 1)
+    else:
+        action = action_parameter
+        parameter = "" 
+    await add_interaction(db, action, parameter)
+    await bot.send_message(message.chat.id, f"Действие добавлено в базу")
+
+@bot.message_handler(commands=['skip'])
+async def skip(message):
+    if not(message.chat.id in AdminTgIds):
+        return
+    await add_interaction(db, "skip", "")
+    await bot.send_message(message.chat.id, f"История скипнута")
+
+@bot.message_handler(commands=['save'])
+async def save(message):
+    if not(message.chat.id in AdminTgIds):
+        return
+    await add_interaction(db, "save", "")
+    await bot.send_message(message.chat.id, f"История сохранена")
 
 @bot.message_handler(commands='off')
 async def off(message):
@@ -414,28 +427,65 @@ async def off(message):
         return
     global mode
     mode = 'off'
+    await bot.send_message(message.chat.id, "Приём тем закрыт")
+
+@bot.message_handler(commands='on')
+async def on(message):
+    if not(message.chat.id in AdminTgIds):
+        return
+    global mode
+    mode = 'on'
+    await bot.send_message(message.chat.id, "Приём тем открыт")
+
+@bot.message_handler(commands='delay')
+async def delay(message):
+    global TopicDelayTg
+    if not(message.chat.id in AdminTgIds):
+        return
+    if message.text[7:] == "":
+        await bot.send_message(message.chat.id, f"Текущее кд: {TopicDelayTg} секунд. ({TopicDelayTg/60} минут)") 
+    else:
+        TopicDelayTg = int(message.text[7:])
+        await bot.send_message(message.chat.id, f"Новое кд: {TopicDelayTg} секунд. ({TopicDelayTg/60} минут)")   
 
 @bot.message_handler(commands='edit')
 async def edit(message):
     if not(message.chat.id in AdminTgIds):
         return
     await try_edit_topic(message.chat.id, message.text[6:])
-    
+
+#endregion    
   
-@bot.message_handler()
+@bot.message_handler(content_types=['text', 'photo', 'sticker', 'document', 'audio', 'video', 'voice'])
 async def send_text(message):
     global mode, last_id
+    
     if message.chat.id in AdminTgIds:
         if mode == 'edit':
             await try_edit_topic(message.chat.id, message.text)
             user_responses[last_id] = "bad"
             mode = "on"
+        if mode == 'spam':
+            mode = 'on'
+            try:
+                for user_id in AdminTgIds:
+                    try:
+                        await bot.copy_message(user_id, message.chat.id, message.id)
+                        print(f'Отправлено юзеру {user_id}')
+                    except Exception as e:
+                        print(f"Ошибка при отправке юзеру {user_id} {e}")
+            except Exception as e:
+                await bot.send_message(message.chat.id, f"Произошла ошибка при рассылке: {e}")
+    
     if not(message.chat.id in AdminTgIds) and not(message.chat.id in SubsChatsIDs):
         if mode == 'on':
            await bot.send_message(message.chat.id, "Бро, задай тему с помощью команды /topic, или посмотри подробности с помощью /help")
         if mode == 'off':
-            await bot.send_message(message.chat.id,'Сожалеем,но прием тем на этом стриме уже завершен, ждем ваши темы на следующем.\n    - с любовью,Meyson\n\nPs. Темы все еще можно задавать за донат(без очереди) https://www.donationalerts.com/r/neuro_gta')
-            await bot.send_sticker(message.chat.id,'CAACAgIAAxkBAAEMZ-JmgY_WuGvpBWdSmJ99nMQgy7qMqQACBxkAAs0xEEghvxdEJ73qJDUE')
+            user_id = message.from_user.id
+            if not (await check_for_admin(SubsChatsIDs[0], user_id) or await check_for_admin(SubsChatsIDs[1], user_id)):
+                await send_off_mode_text(message)
+            else:
+                 await bot.send_message(message.chat.id, "Круто, ты СуперПодписчик, можешь задавать тему, когда никто уже не может!😎\nЖду команду /topic")
         
 async def try_edit_topic(chat_id, message):
     if await edit_topic(db, message):
@@ -443,8 +493,18 @@ async def try_edit_topic(chat_id, message):
     else:
         await bot.send_message(chat_id, "Не удалось применить изменения")
 
+async def send_off_mode_text(message):
+    keyboard = InlineKeyboardMarkup()
+    keyboard.add(InlineKeyboardButton(text="Поддержать проект", url="https://www.donationalerts.com/r/neuro_gta"))
+    keyboard.add(InlineKeyboardButton(text="Подписаться", url=UrlPlatinum))
+    await bot.send_message(message.chat.id,f'''Сожалеем, но приём тем на текущий стрим приостановлен, ждем ваши темы на следующем стриме.
+             - с любовью,Meyson
 
-#endregion
+🤩 Темы все еще можно задавать за донат(без очереди) [здесь](https://www.donationalerts.com/r/neuro_gta)
+❤️Либо оформив подписку /subscribe''', parse_mode='Markdown', reply_markup=keyboard)
+    await bot.send_sticker(message.chat.id,'CAACAgIAAxkBAAEMZ-JmgY_WuGvpBWdSmJ99nMQgy7qMqQACBxkAAs0xEEghvxdEJ73qJDUE')
+
+
 
 print('Запуск ТГ бота...')
 
@@ -457,5 +517,3 @@ async def main():
 
 if __name__ == '__main__':
     asyncio.run(main())
-
-

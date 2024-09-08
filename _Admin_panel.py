@@ -1,12 +1,13 @@
 import customtkinter as ctk
 import os
 import subprocess
+
 button_width = 400  # Ширина кнопок
 button_height = 50  # высота кнопок
 
 #basedir = 'C:\\Users\Honor\Downloads\\'
-basedir = 'N:\AI-Stream-Kit\Stream-Kit\\'
-
+basedir = os.path.dirname(os.path.dirname(os.getcwd()))
+print(basedir)
 
 def tgbot():
     subprocess.Popen(['start', 'python', 'Bots/TelegramBot.py'], shell=True)
@@ -23,6 +24,9 @@ def donbot():
     subprocess.Popen(['start', 'python', 'Bots/DonationBot.py'], shell=True)
     print('Бот для крутых(Донат) запущен')
 
+def tiktokbot():
+    subprocess.Popen(['start', 'python', 'Bots/HandleExceptions/TikTokHandle.py'], shell=True)
+    print('Бот тик ток запущен')
 
 def controller():
     os.system(f'cd / && cd {basedir} && start 4.Controller.bat')
@@ -111,21 +115,31 @@ class OtherFrame(ctk.CTkFrame):
         self.Controlbut.grid(row=0, column=3, padx=(10, 10), pady=(10, 10))
 
 
+class TikTokFrame(ctk.CTkFrame):
+    def __init__(self, master, **kwargs):
+        super().__init__(master, **kwargs)
+        self.TikTokbot = ctk.CTkButton(self, text='Включить тик ток бота', command=tiktokbot, width=button_width,
+                                  height=button_height)
+
+        self.TikTokbot.grid(row=0, column=0, padx=(10, 10), pady=(20, 10))
+
 class AdminPanel(ctk.CTk):
     def __init__(self):
         super().__init__()
-        self.geometry('940x400')
+        self.geometry('940x500')
         self.title('Админ панелька by Meyson')
         self._set_appearance_mode('System')
         self.frame_bot = BotFrame(self)
         self.frame_rvc = RvcFrame(self)
         self.frame_other = OtherFrame(self)
+        self.frame_tiktok = TikTokFrame(self)
         self.create_widgets()
 
     def create_widgets(self):
         self.frame_bot.grid(row=0, column=0, padx=25, pady=20, sticky="w")
         self.frame_rvc.grid(row=0, column=1, padx=20, pady=20, sticky="e")
         self.frame_other.grid(row=1, column=0, columnspan=2, padx=20, pady=20)
+        self.frame_tiktok.grid(row=2, column=0, columnspan=2, padx=20, pady=20)
         # button_width = 200  # Ширина кнопок
         # button_height = 40  # высота кнопок
         #
