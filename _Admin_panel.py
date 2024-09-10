@@ -1,6 +1,4 @@
-import sys
 import os
-sys.path.append( os.path.join(os.path.dirname(__file__), '..', 'venv', 'lib'))
 import customtkinter as ctk
 import subprocess
 
@@ -62,7 +60,7 @@ def qcounter():
 
 
 def cfgControl():
-    subprocess.run(['python', 'CFG_control.py'])
+    subprocess.run(['python', os.path.join(os.path.dirname(__file__), 'CFG_control.py')])
 
 
 class BotFrame(ctk.CTkFrame):

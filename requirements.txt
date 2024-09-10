@@ -1,0 +1,12 @@
+customtkinter==5.2.2
+darkdetect==0.8.0
+discord.py==2.3.2
+DonationAlertsAPI==2.0.2
+dotenv==0.0.5
+fuzzywuzzy==0.18.0
+packaging==24.1
+pymongo==4.7.3
+Quart==0.19.6
+requests==2.32.3
+telebot==0.0.5
+TikTokLive==6.0.8

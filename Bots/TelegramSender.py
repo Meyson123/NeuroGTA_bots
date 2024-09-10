@@ -1,20 +1,24 @@
-import requests
-import asyncio
-import json
 import os
+import requests
+import json
 from dotenv import load_dotenv
 
 load_dotenv()
 
 TG_API_TOKEN = os.getenv('TOKENTG')
-TELEGRAM_CHAT_ID = -1002175092872
+TELEGRAM_CHAT_ID = 709479935
 TG_API_URL = f'https://api.telegram.org/bot{TG_API_TOKEN}/sendMessage'
 
-async def sending_to_tg(payload):
+async def sending_to_tg(payload=None, text=None):
+    if payload == None:
+        payload = {
+        'chat_id': TELEGRAM_CHAT_ID,
+        'text': text,
+    }
     try:
         response = requests.post(TG_API_URL, data=payload)
         if response.status_code == 200:
-            print(f'Тема отправлена в телеграм на модерацию')
+            print(f'Telegram sender: информация отправлена')
         else:
             print(f'Ошибка отправки в телеграм: {response.status_code}')
     except requests.exceptions.RequestException as e:
