@@ -331,7 +331,10 @@ async def callbacks(call):
         await bot.reply_to(call.message,'Тема удалена')
         await bot.send_message(user_id, f'Ваша тема "{topic}" была удалена модераторами.')
     elif but == 'delpred':
-        await delete_theme(db,topic_id)
+        try:
+            await delete_theme(db,topic_id)
+        except:
+            await bot.reply_to(call.message,'Ошибка при удалении темы')
         await add_warning(user_name,source,user_id)
         warns = await warnings_by_user(user_name, source, user_id)
         await bot.reply_to(call.message,'Тема удалена, +1 предупреждение')
@@ -468,7 +471,8 @@ async def send_text(message):
         if mode == 'spam':
             mode = 'on'
             try:
-                for user_id in AdminTgIds:
+                all_id = await get_members_id(db)
+                for user_id in all_id:
                     try:
                         await bot.copy_message(user_id, message.chat.id, message.id)
                         print(f'Отправлено юзеру {user_id}')

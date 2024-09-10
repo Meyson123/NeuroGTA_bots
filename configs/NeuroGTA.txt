@@ -2,11 +2,12 @@
 
 Project = 'Gta'
 
-valid_speakers = ["CJ", "SMOKE", "RYDER"]
+valid_speakers = ["CJ", "SMOKE", "RYDER", "SWEET"]
 replacements = [
     ("CJ", "CJ"),
     ("SMOKE", "SMOKE"),
     ("RYDER", "RYDER"),
+    ("SWEET", "SWEET"),
 ]
 default_topic_suggest_message = 'Окей, бро! Добавил тему в список'
 default_style = 'Агрессивная беседа гангстеров'

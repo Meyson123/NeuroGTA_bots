@@ -1,5 +1,7 @@
-import customtkinter as ctk
+import sys
 import os
+sys.path.append( os.path.join(os.path.dirname(__file__), '..', 'venv', 'lib'))
+import customtkinter as ctk
 import subprocess
 
 button_width = 400  # Ширина кнопок
@@ -49,7 +51,7 @@ def RvcGateway():
 
 
 def startBuild():
-    os.startfile(r"N:\AI-Stream-Kit\AI_Gta\BUILDS\Vertical 5\AI_Gta.exe")
+    os.startfile(rf"{basedir}\Build\AI_Gta.exe")
     print('Билд запущен')
 
 

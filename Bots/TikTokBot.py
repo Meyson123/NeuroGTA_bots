@@ -1,6 +1,6 @@
 from TikTokLive import TikTokLiveClient
 from TikTokLive.client.logger import LogLevel
-from TikTokLive.events import ConnectEvent, DisconnectEvent, CommentEvent, GiftEvent, LikeEvent, LiveEndEvent, LivePauseEvent, SubscribeEvent
+from TikTokLive.events import ConnectEvent, DisconnectEvent, CommentEvent, GiftEvent, LikeEvent, LiveEndEvent, LivePauseEvent, FollowEvent, SubscribeEvent
 import sys
 import os
 import asyncio
@@ -65,9 +65,13 @@ async def on_comment(event: LivePauseEvent) -> None:
 async def on_comment(event: CommentEvent) -> None:
     print(f"{event.user.nickname} -> {event.comment}")
 
-@client.on(SubscribeEvent)
-async def on_comment(event: SubscribeEvent) -> None:
+@client.on(FollowEvent)
+async def on_sub(event: FollowEvent) -> None:
     print_colored(f"{event.user.nickname} подписался!", "green")
+
+@client.on(SubscribeEvent)
+async def on_subs(event: SubscribeEvent) -> None:
+    print_colored(f"{event.user.nickname} подписался!", "blue")
 
 @client.on(GiftEvent)
 async def on_gift(event: GiftEvent):
