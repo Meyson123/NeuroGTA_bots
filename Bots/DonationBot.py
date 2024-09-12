@@ -57,22 +57,22 @@ async def new_donation(event):
             if FinalAmount >= DonatedMashupSumRub and DonatEnableMashups:
                 print('Мэшап задоначен')
 
-                if not message.startswith('!мэшап'):
-                    print('Некорректный запрос мэшапа!')
-                    return
+                if not message.startswith('/кавер'):
+                    print('Это не мэшап / ошибка')
 
-                mashup = message.split("!мэшап ", 1)[1]
-                requestor = f'Донатер {user}'
+                else:
+                    mashup = message.split("/кавер ", 1)[1]
+                    requestor = f'Донатер {user}'
 
-                if mashup and " " in mashup:
-                    speaker, url = mashup.split(" ", 1)
-                    if speaker in valid_speakers:
-                        eng_speaker = replace_name(speaker, replacements)
-                        await add_mashup(db, requestor, donated_id, source, 3, eng_speaker, url)
+                    if mashup and " " in mashup:
+                        speaker, url = mashup.split(" ", 1)
+                        if speaker.upper() in valid_speakers:
+                            eng_speaker = replace_name(speaker, replacements)
+                            await add_mashup(db, requestor, donated_id, source, 3, eng_speaker, url)
+                        else:
+                            print("ОШИБКА! НЕОБХОДИМО РУЧНОЕ ДОБАВЛЕНИЕ")
                     else:
                         print("ОШИБКА! НЕОБХОДИМО РУЧНОЕ ДОБАВЛЕНИЕ")
-                else:
-                    print("ОШИБКА! НЕОБХОДИМО РУЧНОЕ ДОБАВЛЕНИЕ")
 
 
             elif FinalAmount >= DonatedTopicSumRub and DonatEnableTopics:

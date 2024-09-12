@@ -182,14 +182,14 @@ async def search_number(topic_id, db):
 
     if document:
         # Получаем порядковый номер документа в коллекции generated_topics
-        document_number = generated.count_documents({'_id': {'$lt': document['_id']}}) + 1
+        document_number = generated.count_documents({'_id': {'$lt': document['_id']}, 'priority': {'$gt': 0}}) + 1
         return document_number
     else:
         document = suggested.find_one({"_id": ObjectId(topic_id)})
 
         if document:
             # Получаем порядковый номер документа в коллекции suggested_topics
-            document_number = suggested.count_documents({'_id': {'$lt': document['_id']}}) + 1
+            document_number = suggested.count_documents({'_id': {'$lt': document['_id']}}) + 1 - generated.count_documents({'priority': 0})
             return document_number + generated.count_documents({})
 
     return None

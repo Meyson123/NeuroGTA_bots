@@ -48,11 +48,11 @@ SubChat = [-4263371994]
 ChanelToSubscribeID = '@neurogta'
 
 #Donat config
-DonatedTopicSumRub = 35
-DonatedMashupSumRub = 0
+DonatedTopicSumRub = 50
+DonatedMashupSumRub = 150
 DonatedInteractionOneSumRub = 25
 DonatedInteractionTwoSumRub = 0
 DonatEnableTopics = True
-DonatEnableMashups = False
+DonatEnableMashups = True
 DonatEnableInteractionOne = True
 DonatEnableInteractionTwo = False

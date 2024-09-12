@@ -17,8 +17,8 @@ generated = db["generated_topics"]
 while True:
     try:
         # Получение количества записей в коллекции
-        suggested_count = suggested.count_documents({})
-        generated_count = generated.count_documents({})
+        generated_count = generated.count_documents({"priority": {"$gt": 0}})
+        suggested_count = suggested.count_documents({"priority": {"$gt": 0}})
         count = suggested_count + generated_count
 
         print(f"Очередь: {count}")

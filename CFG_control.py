@@ -1,6 +1,7 @@
 import io
 import subprocess
 import customtkinter as ctk
+from configs.SetLanguage import change_language
 
 ctk.set_appearance_mode("System")  # Modes: system (default), light, dark
 ctk.set_default_color_theme("blue")  # Themes: blue (default), dark-blue, green
@@ -41,6 +42,12 @@ def Video_mode():
     propmt_to_run = 'configs/PromptVideo.py'
     prompt_to_run(propmt_to_run)
 
+def ru():
+    change_language("ru")
+
+def en():
+    change_language("en")
+
 
 def prompt_to_run(propmt_to_run):
     try:
@@ -51,19 +58,34 @@ def prompt_to_run(propmt_to_run):
 
 
 app = ctk.CTk()
-app.geometry("240x240")
+app.geometry("240x350")
 
+# Create buttons
 NeuroPry = ctk.CTkButton(master=app, text="ПРЯНИКИ", command=Pryanik_mode)
 NeuroGta = ctk.CTkButton(master=app, text="ГТА", command=Gta_mode)
 NeuroCol = ctk.CTkButton(master=app, text="КОЛАБ", command=Colab_mode)
 NeuroRol = ctk.CTkButton(master=app, text="ВИДЕОРОЛИК", command=Video_mode)
-Title = ctk.CTkLabel(master=app,text='Выбери нужный конфиг')
+SetRU = ctk.CTkButton(master=app, text="RU", command=ru, width=80, height=20)
+SetEN = ctk.CTkButton(master=app, text="EN", command=en, width=80, height=20)
 
-Title.grid(column = 0,row = 0)
-NeuroPry.grid(column = 0,row = 1,ipadx=30, ipady=6, padx=27, pady=7)
-NeuroGta.grid(column = 0,row = 2,ipadx=30, ipady=6, padx=27, pady=7)
-NeuroCol.grid(column = 0,row = 3,ipadx=30, ipady=6, padx=27, pady=7)
-NeuroRol.grid(column = 0,row = 4,ipadx=30, ipady=6, padx=27, pady=7)
+# Add widgets to the grid
+Title = ctk.CTkLabel(master=app, text='Выбери нужный конфиг')
+Title.grid(column=0, row=0, columnspan=2, sticky="ew")
 
+NeuroPry.grid(column=0, row=1, columnspan=2, ipadx=30, ipady=6, padx=27, pady=7, sticky="ew")
+NeuroGta.grid(column=0, row=2, columnspan=2, ipadx=30, ipady=6, padx=27, pady=7, sticky="ew")
+NeuroCol.grid(column=0, row=3, columnspan=2, ipadx=30, ipady=6, padx=27, pady=7, sticky="ew")
+NeuroRol.grid(column=0, row=4, columnspan=2, ipadx=30, ipady=6, padx=27, pady=7, sticky="ew")
+
+# Label for language selection
+LangSelect = ctk.CTkLabel(master=app, text='Выбрать язык')
+LangSelect.grid(column=0, row=5, columnspan=2, pady=7, sticky="ew")
+
+SetRU.grid(column=0, row=6, ipadx=10, ipady=6, padx=4, pady=2, sticky="ew")
+SetEN.grid(column=1, row=6, ipadx=10, ipady=6, padx=4, pady=2, sticky="ew")
+
+# Configure column weights to ensure proper resizing
+app.grid_columnconfigure(0, weight=1)
+app.grid_columnconfigure(1, weight=1)
 
 app.mainloop()
