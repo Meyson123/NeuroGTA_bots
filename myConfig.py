@@ -48,6 +48,7 @@ SubChat = [-4263371994]
 ChanelToSubscribeID = '@neurogta'
 
 #Donat config
+DonateUrl = 'https://www.donationalerts.com/r/neuro_gta'
 DonatedTopicSumRub = 50
 DonatedMashupSumRub = 150
 DonatedInteractionOneSumRub = 25

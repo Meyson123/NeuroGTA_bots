@@ -6,13 +6,14 @@ sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 from dotenv import load_dotenv
 from telebot.async_telebot import AsyncTeleBot, types
 from telebot.types import InlineKeyboardMarkup,InlineKeyboardButton
+from Bots.TelegramTexts import start_sms, subs_sms, help_sms, cover_sms, intro_sms, rules_sms, donate_sms
 from myConfig import AdminTgIds, ChanelToSubscribeID, NeedTopicDelay, TopicDelayTg, TopicPriority, \
-    default_topic_suggest_message,threshold, MaxLengthTG, DonatedTopicSumRub, SubsChatsIDs, \
-    SubsUpTopicCount, SubsUpTopicDelay, UrlPlatinum, UrlLegendary
+    default_topic_suggest_message,threshold, MaxLengthTG, DonatedTopicSumRub, SubsChatsIDs, DonateUrl, \
+    SubsUpTopicCount, SubsUpTopicDelay, UrlPlatinum, UrlLegendary, valid_speakers, replacements
 from Mongodb.CountScripts import warnings_by_user,add_count, sort_counter,add_warning,block_user,search_nick
 from Mongodb.BotsScripts import add_topic,connect_to_mongodb,filt,delete_theme,search_number,\
     get_topic_by_user,check_topic_exists, check_topic_style, get_members_id, edit_topic,\
-    up_theme, add_interaction, get_parameters_by_topic_id,get_id_by_theme_number
+    up_theme, add_interaction, get_parameters_by_topic_id,get_id_by_theme_number, add_mashup, replace_name
 from quart import Quart, request
 
 load_dotenv()
@@ -85,6 +86,10 @@ async def check_for_admin(chat_id, admin_id):
     except Exception as e:
         print(f"Произошла ошибка: {e}")
         return False
+    
+async def check_for_sub(id):
+    chat_member = await bot.get_chat_member(ChanelToSubscribeID, id)
+    return chat_member.status in ['member', 'administrator', 'creator']
 
 async def send_notification(admin_id, position):
     try:
@@ -113,36 +118,28 @@ async def send_message_to_user(user_id, message):
 
 @bot.message_handler(commands=['start'])
 async def start(message):
-    await bot.send_message(message.chat.id, 'Wassup, nigga🖐️\n'
-                                            'Здесь ты можешь предложить тему на стрим Нейро GTA.\n'
-                                            '/topic - Задать тему\n\n'
-                                            '/help - Для подробной информации\n'
-                                            '/ban_themes - Правила и запрещенные темы\n'
-                                            '/queue - Посмотреть свою очередь\n\n'
-                                            f'За {DonatedTopicSumRub}₽ можно заказать тему без очереди!\nhttps://www.donationalerts.com/r/neuro_gta')
+    if await check_for_sub(message.from_user.id) == False:
+            keyboard = InlineKeyboardMarkup()
+            keyboard.add(InlineKeyboardButton(text="✅Я подписался", callback_data=f"sub|&|{message.from_user.id}"))
+            await bot.send_message(message.chat.id, "Привет, бро! \n\n"
+                                   "Добро пожаловать в официальный бот проекта Нейро GTA! \n\n"
+                                   "Для того чтобы воспользоваться ботом, тебе необходимо быть подписчиком нашего Telegram-канала\n"
+                                                    f"Нейро GTA {ChanelToSubscribeID}", reply_markup=keyboard)
+            return
+    await bot.send_message(message.chat.id, start_sms)
 
 @bot.message_handler(commands=['help'])
 async def help_message(message):
-    await bot.send_message(message.chat.id, 'Все до жути просто, братан. Просто пиши команду "/topic", а дальше свою тему 😊\n\n'
-                                            "Также по желанию можно добавить истории свой стиль (жанр). Для этого нужно после темы добавить команду !стиль [Свой стиль] 🎨\n"
-                                            'Пример: "/topic CJ и Smoke осознали что ими управляет нейросеть !стиль хоррор" \n\n'
-                                            'Избегай запрещенных тем, описанных в команде /ban_themes \n'
-                                            'Такие темы не будут сгенерированы, а если пытаться обойти правила, можно получить бан 🚷\n\n'
-                                            'Очередь своих тем можно узнать командой /queue ⏳\n'
-                                            'Эта команда выведет все твои темы, которые находятся в очереди, и их порядковый номер 📋\n\n'
-                                            #"P.S. В нашем дискорд сервере задержка на добавление темы меньше ⏱️. Секретная ссылка на наш дискорд: https://discord.gg/HcfJw5umC3\n\n"
-                                            "P.S. Заказать тему без очереди (и просто оказать поддержку) можно здесь:\n"
-                                            'https://www.donationalerts.com/r/neuro_gta 💖')
+    await bot.send_message(message.chat.id, help_sms)
 
 @bot.message_handler(commands=['topic'])
 async def topic(message):
     try:
-        chat_member = await bot.get_chat_member(ChanelToSubscribeID, message.from_user.id)
-        if chat_member.status not in ['member', 'administrator', 'creator']:
+        if await check_for_sub(message.from_user.id) == False:
             keyboard = InlineKeyboardMarkup()
-            keyboard.add(InlineKeyboardButton(text="Подписаться", url=f"https://t.me/{ChanelToSubscribeID[1:]}"))
-            await bot.send_message(message.chat.id, "Пожалуйста, подпишитесь на наш канал, чтобы задавать темы\n"
-                                                    f"https://t.me/{ChanelToSubscribeID[1:]}", reply_markup=keyboard)
+            keyboard.add(InlineKeyboardButton(text="✅Я подписался", callback_data=f"sub|&|{message.from_user.id}"))
+            await bot.send_message(message.chat.id, "Для того, чтобы отправлять темы для генерации сценариев на стрим, тебе необходимо быть подписчиком нашего Telegram-канала\n"
+                                                    f"Нейро GTA {ChanelToSubscribeID}", reply_markup=keyboard)
             return
     except Exception as e:
         await bot.send_message(message.chat.id, f"Произошла ошибка: {e}")
@@ -170,7 +167,7 @@ async def topic(message):
         last_topic_time[requestor_id] = time.time()
         if warnings is None:
             warnings = 0
-        await bot.send_message(message.chat.id, 'Ай-ай-ай,у нас тут так не принято. Не нужно кидать запрещенные темы\n/ban_themes - Запрещенные темы')
+        await bot.send_message(message.chat.id, 'Ай-ай-ай,у нас тут так не принято. Не нужно кидать запрещенные темы\n/rules - Запрещенные темы')
         await bot.send_message(message.chat.id,f'На данный момент у вас {warnings+1} предупреждений.')
         markup = InlineKeyboardMarkup()
         markup.add(InlineKeyboardButton('🖕 Заблокировать', callback_data= f"ban|&|{requestor_id}"))
@@ -251,19 +248,9 @@ async def topic(message):
     #await bot.send_message(message.chat.id,'Хочешь получить уведомление,когда придет время твоей темы? \n➡️️ Пиши /subscribe')
     last_topic_time[requestor_id] = time.time()
 
-@bot.message_handler(commands=['ban_themes'])
-async def ban_themes(message):
-    await bot.send_message(message.chat.id,'''🚫У нас на стриме запрещены темы, в которых обсуждается:
-1)Политика
-2)Дети
-3)Религия
-4)Алкоголь, никотиносодержащие изделия (сигареты и тп), наркотики (прямое упоминанием веществ)
-5)Аморальщина
-                           
-Если вы отправили запрещенную тему, вы получите предупреждение автоматически.
-При попытке обхода правил модераторы также могут отклонить вашу тему и выдать предупреждение.
-                            
-Соблюдайте правила, и радуйтесь своим темам на стриме 💖''')
+@bot.message_handler(commands=['rules'])
+async def rules(message):
+    await bot.send_message(message.chat.id, rules_sms)
 
 @bot.message_handler(commands=['queue'])
 async def queue(message):
@@ -277,7 +264,7 @@ async def queue(message):
         k += 1
     if spisok == '':
         spisok = 'Пока у тебя нет тем в очереди.'
-    await bot.send_message(message.chat.id,f'{spisok}\n\nP.S. Если до твоей темы далеко - за {DonatedTopicSumRub}₽ можно заказать тему без очереди!\nhttps://www.donationalerts.com/r/neuro_gta 💖\n\nP.P.S А чтобы получать уведомления о начале своей темы и запускать темы без очереди прямо в телеграме - напиши /subscribe 😍')
+    await bot.send_message(message.chat.id,f'{spisok}\n\nP.S. Если до твоей темы далеко - за {DonatedTopicSumRub}₽ можно заказать тему без очереди!\n{DonateUrl} 💖\n\nP.P.S А чтобы получать уведомления о начале своей темы и запускать темы без очереди прямо в телеграме - напиши /subscribe 😍')
     #await bot.send_message(message.chat.id,spisok)
 
 @bot.message_handler(commands=['subscribe'])
@@ -286,23 +273,7 @@ async def subscribe(message):
     markup.add(InlineKeyboardButton(text="💎PLATINUM💎", url=UrlPlatinum))
     markup.add(InlineKeyboardButton(text="👑LEGENDARY👑", url=UrlLegendary))
     #await bot.send_message(message.chat.id, "Выберите желаемый уровень подписки", reply_markup=markup)
-    await bot.send_message(message.chat.id, 
-f'''Доступные варианты подписки и их преимущества на данный момент:
-
-*💎PLATINUM* 
-- получение уведомления, когда ваша тема 3 в очереди🔔
-- получение уведомления, когда ваша тема начинается🔔
-
-*👑LEGENDARY* 
-- все преимущества подписки PLATINUM
-- возможность на каждом стриме задать {SubsUpTopicCount} тем(ы) без очереди🚀
-
-✨На каждом уровне подписки имеется свой чат, так что кроме описанных выше преимуществ вы получите уникальный контент и возможность взаимодействия с авторами проекта Нейро GTA!✨
-
-_Подписка оформляется через официальное приложение телеграм Tribute, все данные защищены🔒_
-
-*ВЫБЕРИТЕ ЖЕЛАЕМЫЙ УРОВЕНЬ:*
-''', parse_mode="Markdown", reply_markup=markup)
+    await bot.send_message(message.chat.id, subs_sms, parse_mode="Markdown", reply_markup=markup)
                        
 @bot.callback_query_handler(func=lambda call: True)
 async def callbacks(call):
@@ -319,10 +290,21 @@ async def callbacks(call):
                 mode = 'edit'
                 last_id = call.message.message_id
         return
-    
+                
     calldata = call.data.split('|&|')
     but = calldata[0]
     user_id = calldata[1]
+    if but == "sub":
+        if await check_for_sub(user_id) == False:
+                    keyboard = InlineKeyboardMarkup()
+                    keyboard.add(InlineKeyboardButton(text="✅Теперь точно подписался", callback_data=f"sub|&|{user_id}"))
+                    await bot.send_message(user_id, "Ошибка, ты не являешься подписчиком Telegram-канала\n"
+                                                    f"Нейро GTA {ChanelToSubscribeID}", reply_markup=keyboard)
+        else:
+            await bot.send_message(user_id, intro_sms, parse_mode='Markdown')
+        return
+
+
     topic_id = calldata[2]
     topic, user_name, user_tag, source = await get_parameters_by_topic_id(db, topic_id, 'topic', 'requestor_name', 'user_tag', 'source')
     print(user_name, user_tag, source)
@@ -371,6 +353,18 @@ async def callbacks(call):
         else:
            await bot.send_message(user_id, '🔒Данная функция доступна только подписчикам уровня *"PLATINUM"* и *"LEGENDARY"*\nОформить подписку: /subscribe', parse_mode="Markdown") 
         pass
+
+
+@bot.message_handler(commands=['donate'])
+async def donate(message):
+    keyboard = InlineKeyboardMarkup()
+    keyboard.add(InlineKeyboardButton(text="❤️Поддержать проект❤️", url=f"{DonateUrl}"))
+    await bot.send_message(message.chat.id, donate_sms, parse_mode='Markdown', reply_markup=keyboard)
+    
+@bot.message_handler(commands=['cover'])
+async def cover(message):
+     await bot.send_message(message.chat.id, cover_sms, parse_mode='Markdown')
+
 #endregion
 
 
@@ -457,6 +451,19 @@ async def edit(message):
         return
     await try_edit_topic(message.chat.id, message.text[6:])
 
+@bot.message_handler(commands='meyson')
+async def meyson(message):
+
+    mashup = message.text.split("/meyson ", 1)[1]
+    requestor = message.from_user.first_name
+
+    if mashup and " " in mashup:
+        speaker, url = mashup.split(" ", 1)
+        if speaker.upper() in valid_speakers:
+            eng_speaker = replace_name(speaker, replacements)
+            await add_mashup(db, requestor, message.from_user.id, source, 1, eng_speaker, url)
+            await bot.send_message(message.chat.id, "Добавили кавер")
+
 #endregion    
   
 @bot.message_handler(content_types=['text', 'photo', 'sticker', 'document', 'audio', 'video', 'voice'])
@@ -499,12 +506,12 @@ async def try_edit_topic(chat_id, message):
 
 async def send_off_mode_text(message):
     keyboard = InlineKeyboardMarkup()
-    keyboard.add(InlineKeyboardButton(text="Поддержать проект", url="https://www.donationalerts.com/r/neuro_gta"))
+    keyboard.add(InlineKeyboardButton(text="Поддержать проект", url=f"{DonateUrl}"))
     keyboard.add(InlineKeyboardButton(text="Подписаться", url=UrlPlatinum))
     await bot.send_message(message.chat.id,f'''Сожалеем, но приём тем на текущий стрим приостановлен, ждем ваши темы на следующем стриме.
              - с любовью,Meyson
 
-🤩 Темы все еще можно задавать за донат(без очереди) [здесь](https://www.donationalerts.com/r/neuro_gta)
+🤩 Темы все еще можно задавать за донат(без очереди) [здесь]({DonateUrl})
 ❤️Либо оформив подписку /subscribe''', parse_mode='Markdown', reply_markup=keyboard)
     await bot.send_sticker(message.chat.id,'CAACAgIAAxkBAAEMZ-JmgY_WuGvpBWdSmJ99nMQgy7qMqQACBxkAAs0xEEghvxdEJ73qJDUE')
 

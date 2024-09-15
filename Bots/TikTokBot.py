@@ -63,28 +63,30 @@ async def on_comment(event: LivePauseEvent) -> None:
 
 @client.on(CommentEvent)
 async def on_comment(event: CommentEvent) -> None:
-    print(f"{event.user.nickname} -> {event.comment}")
+    print_colored(f"{event.user.nickname} -> {event.comment}", "pink")
 
 @client.on(FollowEvent)
 async def on_sub(event: FollowEvent) -> None:
     print_colored(f"{event.user.nickname} подписался!", "green")
+    #await add_interaction(db, "test", event.user.avatar_thumb.url_list[0])
+
 
 @client.on(SubscribeEvent)
 async def on_subs(event: SubscribeEvent) -> None:
-    print_colored(f"{event.user.nickname} подписался!", "blue")
+    print_colored(f"{event.user.nickname} подписался!", "blue") 
 
 @client.on(GiftEvent)
 async def on_gift(event: GiftEvent):
     #client.logger.info("Received a gift!")
     # Can have a streak and streak is over
     if event.gift.streakable and not event.streaking:
-        print(f"{event.user.unique_id} sent {event.repeat_count}x \"{event.gift.name}\"")
+        print_colored(f"{event.user.unique_id} sent {event.repeat_count}x \"{event.gift.name}\"", "blue")
         if event.gift.name in gift_switch:
             await gift_switch[event.gift.name]()
 
     # Cannot have a streak
     elif not event.gift.streakable:
-        print(f"{event.user.unique_id} sent \"{event.gift.name}\"")
+        print_colored(f"{event.user.unique_id} sent \"{event.gift.name}\"", "blue")
         if event.gift.name in gift_switch:
             await gift_switch[event.gift.name]()
 
