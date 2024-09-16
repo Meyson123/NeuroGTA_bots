@@ -294,6 +294,7 @@ async def callbacks(call):
     calldata = call.data.split('|&|')
     but = calldata[0]
     user_id = calldata[1]
+
     if but == "sub":
         if await check_for_sub(user_id) == False:
                     keyboard = InlineKeyboardMarkup()
@@ -303,7 +304,16 @@ async def callbacks(call):
         else:
             await bot.send_message(user_id, intro_sms, parse_mode='Markdown')
         return
-
+    
+    elif but == 'ban':
+        chat_info = await bot.get_chat(user_id)
+        user_tag = f'@{chat_info.username}' 
+        user_name = chat_info.first_name
+        global source
+        await block_user(source,user_name,user_tag,user_id)
+        await bot.reply_to(call.message,'Пользователь заблокирован. Ебать он лох')
+        await bot.send_message(user_id, 'Поздравляем, вы были заблокированы за нарушение правил! :)')
+        return
 
     topic_id = calldata[2]
     topic, user_name, user_tag, source = await get_parameters_by_topic_id(db, topic_id, 'topic', 'requestor_name', 'user_tag', 'source')
@@ -321,10 +331,6 @@ async def callbacks(call):
         warns = await warnings_by_user(user_name, source, user_id)
         await bot.reply_to(call.message,'Тема удалена, +1 предупреждение')
         await bot.send_message(user_id, f'Ваша тема "{topic}" была удалена модераторами.\nКоличество предупреждений: {warns}/5')
-    elif but == 'ban':
-        await block_user(source,user_name,user_tag,user_id)
-        await bot.reply_to(call.message,'Пользователь заблокирован. Ебать он лох')
-        await bot.send_message(user_id, 'Поздравляем, вы были заблокированы за нарушение правил! :)')
     elif but == 'up':
         await up_theme(db,topic_id)
         await bot.reply_to(call.message,'Приоритет темы повышен.')

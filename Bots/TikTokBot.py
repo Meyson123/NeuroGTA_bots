@@ -1,6 +1,7 @@
 from TikTokLive import TikTokLiveClient
 from TikTokLive.client.logger import LogLevel
-from TikTokLive.events import ConnectEvent, DisconnectEvent, CommentEvent, GiftEvent, LikeEvent, LiveEndEvent, LivePauseEvent, FollowEvent, SubscribeEvent
+from TikTokLive.events import ConnectEvent, DisconnectEvent, CommentEvent, ShareEvent,\
+    GiftEvent, LikeEvent, LiveEndEvent, LivePauseEvent, FollowEvent, SubscribeEvent
 import sys
 import os
 import asyncio
@@ -9,12 +10,15 @@ from Mongodb.BotsScripts import connect_to_mongodb, add_interaction
 from Mongodb.CountScripts import format_number
 from TelegramSender import sending_to_tg
 from PrintColored import print_colored
-
+from AvatarSaver import save_avatar
 db = connect_to_mongodb()
-id = "@neurogta"
+id = "@sekira.axx7"
 
 # Create the client
 client: TikTokLiveClient = TikTokLiveClient(unique_id=id)
+
+user_shares = {}
+shares_for_action = 1
 
 user_likes = {}
 likes_for_action = 200
@@ -68,12 +72,24 @@ async def on_comment(event: CommentEvent) -> None:
 @client.on(FollowEvent)
 async def on_sub(event: FollowEvent) -> None:
     print_colored(f"{event.user.nickname} подписался!", "green")
-    #await add_interaction(db, "test", event.user.avatar_thumb.url_list[0])
-
 
 @client.on(SubscribeEvent)
 async def on_subs(event: SubscribeEvent) -> None:
     print_colored(f"{event.user.nickname} подписался!", "blue") 
+
+@client.on(ShareEvent)
+async def on_share(event: ShareEvent) -> None:
+    global user_shares
+    print_colored(f"{event.user.nickname} поделился" ,"blue")
+    user_id = event.user.unique_id
+    if user_id not in user_shares:
+        user_shares[user_id] = 0
+    user_shares[user_id] += 1
+    if user_shares[user_id] == shares_for_action:
+        user_shares[user_id] = 0
+        url = await save_avatar(user_id)
+        await add_interaction(db, "avatar", url) 
+        print_colored(f"{event.user.nickname} поделился стримом {shares_for_action} раз(а)!", "blue")
 
 @client.on(GiftEvent)
 async def on_gift(event: GiftEvent):
@@ -92,6 +108,8 @@ async def on_gift(event: GiftEvent):
 
 @client.on(LikeEvent)
 async def on_like(event: LikeEvent):
+    #print(await save_photo(event.user.avatar_thumb.url_list[0], event.user.unique_id))
+    #print(event.user.avatar_thumb.url_list[0])
     #Салюты каждые likes_treshold лайков
     global first_like, last_total_likes, total_likes, likes_treshold
 
