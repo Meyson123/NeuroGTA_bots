@@ -12,13 +12,13 @@ from TelegramSender import sending_to_tg
 from PrintColored import print_colored
 from AvatarSaver import save_avatar
 db = connect_to_mongodb()
-id = "@sekira.axx7"
+id = "@neurogta"
 
 # Create the client
 client: TikTokLiveClient = TikTokLiveClient(unique_id=id)
 
 user_shares = {}
-shares_for_action = 1
+shares_for_action = 3
 
 user_likes = {}
 likes_for_action = 200

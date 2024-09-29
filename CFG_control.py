@@ -42,6 +42,10 @@ def Video_mode():
     propmt_to_run = 'configs/PromptVideo.py'
     prompt_to_run(propmt_to_run)
 
+def off():
+    propmt_to_run = 'configs/PromptOff.py'
+    prompt_to_run(propmt_to_run)
+
 def ru():
     change_language("ru")
 
@@ -58,13 +62,14 @@ def prompt_to_run(propmt_to_run):
 
 
 app = ctk.CTk()
-app.geometry("240x350")
+app.geometry("240x380")
 
 # Create buttons
 NeuroPry = ctk.CTkButton(master=app, text="ПРЯНИКИ", command=Pryanik_mode)
 NeuroGta = ctk.CTkButton(master=app, text="ГТА", command=Gta_mode)
 NeuroCol = ctk.CTkButton(master=app, text="КОЛАБ", command=Colab_mode)
 NeuroRol = ctk.CTkButton(master=app, text="ВИДЕОРОЛИК", command=Video_mode)
+Off = ctk.CTkButton(master=app, text="OFF", command=off)
 SetRU = ctk.CTkButton(master=app, text="RU", command=ru, width=80, height=20)
 SetEN = ctk.CTkButton(master=app, text="EN", command=en, width=80, height=20)
 
@@ -76,13 +81,14 @@ NeuroPry.grid(column=0, row=1, columnspan=2, ipadx=30, ipady=6, padx=27, pady=7,
 NeuroGta.grid(column=0, row=2, columnspan=2, ipadx=30, ipady=6, padx=27, pady=7, sticky="ew")
 NeuroCol.grid(column=0, row=3, columnspan=2, ipadx=30, ipady=6, padx=27, pady=7, sticky="ew")
 NeuroRol.grid(column=0, row=4, columnspan=2, ipadx=30, ipady=6, padx=27, pady=7, sticky="ew")
+Off.grid(column=0, row=5, columnspan=2, ipadx=30, ipady=6, padx=27, pady=7, sticky="ew")
 
 # Label for language selection
 LangSelect = ctk.CTkLabel(master=app, text='Выбрать язык')
-LangSelect.grid(column=0, row=5, columnspan=2, pady=7, sticky="ew")
+LangSelect.grid(column=0, row=6, columnspan=2, pady=7, sticky="ew")
 
-SetRU.grid(column=0, row=6, ipadx=10, ipady=6, padx=4, pady=2, sticky="ew")
-SetEN.grid(column=1, row=6, ipadx=10, ipady=6, padx=4, pady=2, sticky="ew")
+SetRU.grid(column=0, row=7, ipadx=10, ipady=6, padx=4, pady=2, sticky="ew")
+SetEN.grid(column=1, row=7, ipadx=10, ipady=6, padx=4, pady=2, sticky="ew")
 
 # Configure column weights to ensure proper resizing
 app.grid_columnconfigure(0, weight=1)
