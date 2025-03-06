@@ -522,7 +522,7 @@ async def send_off_mode_text(message):
     await bot.send_sticker(message.chat.id,'CAACAgIAAxkBAAEMZ-JmgY_WuGvpBWdSmJ99nMQgy7qMqQACBxkAAs0xEEghvxdEJ73qJDUE')
 
 
-
+print('GTA')
 print('Запуск ТГ бота...')
 
 async def main():

@@ -16,6 +16,7 @@ id = "@neurogta"
 
 # Create the client
 client: TikTokLiveClient = TikTokLiveClient(unique_id=id)
+#client = TikTokLiveClient(unique_id=id, web_kwargs={"params": {"room_id": "7454118754650278699"}})
 
 user_shares = {}
 shares_for_action = 3
@@ -72,24 +73,25 @@ async def on_comment(event: CommentEvent) -> None:
 @client.on(FollowEvent)
 async def on_sub(event: FollowEvent) -> None:
     print_colored(f"{event.user.nickname} подписался!", "green")
+    await add_interaction(db, "follower", event.user.nickname) 
 
 @client.on(SubscribeEvent)
 async def on_subs(event: SubscribeEvent) -> None:
     print_colored(f"{event.user.nickname} подписался!", "blue") 
 
-@client.on(ShareEvent)
-async def on_share(event: ShareEvent) -> None:
-    global user_shares
-    print_colored(f"{event.user.nickname} поделился" ,"blue")
-    user_id = event.user.unique_id
-    if user_id not in user_shares:
-        user_shares[user_id] = 0
-    user_shares[user_id] += 1
-    if user_shares[user_id] == shares_for_action:
-        user_shares[user_id] = 0
-        url = await save_avatar(user_id)
-        await add_interaction(db, "avatar", url) 
-        print_colored(f"{event.user.nickname} поделился стримом {shares_for_action} раз(а)!", "blue")
+# @client.on(ShareEvent)
+# async def on_share(event: ShareEvent) -> None:
+#     global user_shares
+#     print_colored(f"{event.user.nickname} поделился" ,"blue")
+#     user_id = event.user.unique_id
+#     if user_id not in user_shares:
+#         user_shares[user_id] = 0
+#     user_shares[user_id] += 1
+#     if user_shares[user_id] == shares_for_action:
+#         user_shares[user_id] = 0
+#         url = await save_avatar(user_id)
+#         await add_interaction(db, "avatar", url) 
+#         print_colored(f"{event.user.nickname} поделился стримом {shares_for_action} раз(а)!", "blue")
 
 @client.on(GiftEvent)
 async def on_gift(event: GiftEvent):

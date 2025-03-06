@@ -3,7 +3,7 @@ from bs4 import BeautifulSoup
 from TelegramSender import sending_to_tg
 
 # URL для POST-запроса
-url = "https://ttsave.app/download"
+url = "https://ttsave.app/en/profile"
 
 # Заголовки запроса
 headers = {

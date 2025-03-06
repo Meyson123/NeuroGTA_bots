@@ -3,7 +3,7 @@ import os
 current_dir = os.path.dirname(__file__)
 
 try:
-    file_path_prompt = os.path.join(current_dir, '..', '..', '..', 'controller', 'config', 'default.json')
+    file_path_prompt = os.path.join(current_dir, '..', '..', '..', 'controller-gta', 'config', 'default.json')
     with open(file_path_prompt, 'r', encoding='utf-8') as file:
         data = json.load(file)
     data['currentMode']['mode'] = "Off"
