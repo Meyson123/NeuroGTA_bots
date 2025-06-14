@@ -2,13 +2,13 @@ from telethon.errors import SessionPasswordNeededError
 from telethon import TelegramClient, events
 from telethon.errors import SessionPasswordNeededError, ChannelPrivateError
 
-api_id = '22467923'
-api_hash = '32a6046af8dc6f94a63ab3f1b36606ea'
-phone_number = '+6281578047853'
-channel_username = '-1002424476130'
+api_id = ''
+api_hash = ''
+phone_number = ''
+channel_username = ''
 message_to_post = 'Ваше сообщение'
 
-discussion_group = '-1002286374756'
+discussion_group = ''
 comment = 'Ваш комментарий'
 
 client = TelegramClient('session_name', api_id, api_hash)
